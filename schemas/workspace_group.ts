@@ -3,10 +3,9 @@ import z from "zod";
 import { withDbErrorHandling, withTransaction } from "./dbUtils";
 
 export const ZWorkspaceGroup = z.object({
-	id: z.number(),
 	workspace_id: z.number(),
-	title: z.string(),
-	pos: z.number(),
+	group_id: z.number(),
+	name_: z.string(),
 });
 
 const ZGetWorkspaceGroups = ZWorkspaceGroup.pick({ workspace_id: true });

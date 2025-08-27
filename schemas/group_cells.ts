@@ -4,9 +4,9 @@ import { withDbErrorHandling } from "./dbUtils";
 
 export const ZWorkspaceGroupColumnItem = z.object({
 	id: z.number(),
-	workspace_group_column_id: z.number(),
+	group_row_id: z.number(),
+	group_column_id: z.number(),
 	content: z.json(),
-	pos: z.number(),
 });
 
 const ZgetWorkspaceGroupColumnItemsCount = ZWorkspaceGroupColumnItem.pick({

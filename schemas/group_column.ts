@@ -4,19 +4,20 @@ import {
 	createWorkspaceGroupColumnItem,
 	getWorkspaceGroupColumnItemsCount,
 	getWorkspaceGroupColumnItemsNextPos,
-} from "./workspace_group_column_item";
+} from "./group_cells";
 import invariant from "tiny-invariant";
 import { withDbErrorHandling, withTransaction } from "./dbUtils";
 
-export const ZWorkspaceGroupColumn = z.object({
+export const ZGroupColumn = z.object({
 	id: z.number(),
-	workspace_group_id: z.number(),
-	title: z.string(),
+	group_id: z.number(),
+	name_: z.string(),
 	column_type: z.number(),
+	type_properties: z.json(),
 	pos: z.number(),
 });
 
-const ZGetWorkspaceGroupColumnsNextPos = ZWorkspaceGroupColumn.pick({
+const ZGetWorkspaceGroupColumnsNextPos = ZGroupColumn.pick({
 	workspace_group_id: true,
 });
 const getWorkspaceGroupColumnsNextPos = withDbErrorHandling(
@@ -43,7 +44,7 @@ const getWorkspaceGroupColumnsNextPos = withDbErrorHandling(
 	},
 );
 
-const ZgetWorkspaceGroupColumn = ZWorkspaceGroupColumn.pick({
+const ZgetWorkspaceGroupColumn = ZGroupColumn.pick({
 	workspace_group_id: true,
 	pos: true,
 });
@@ -62,12 +63,12 @@ export const getWorkspaceGroupColumn = withDbErrorHandling(
 			[values.workspace_group_id, values.pos],
 		);
 
-		const parsedRes = ZWorkspaceGroupColumn.array().parse(res.rows);
+		const parsedRes = ZGroupColumn.array().parse(res.rows);
 		return parsedRes[0];
 	},
 );
 
-const ZgetWorkspaceGroupColumns = ZWorkspaceGroupColumn.pick({
+const ZgetWorkspaceGroupColumns = ZGroupColumn.pick({
 	workspace_group_id: true,
 });
 export const getWorkspaceGroupColumns = withDbErrorHandling(
@@ -85,11 +86,11 @@ export const getWorkspaceGroupColumns = withDbErrorHandling(
 			[values.workspace_group_id],
 		);
 
-		return ZWorkspaceGroupColumn.array().parse(res.rows);
+		return ZGroupColumn.array().parse(res.rows);
 	},
 );
 
-const ZCreateWorkspaceGroupColumn = ZWorkspaceGroupColumn.pick({
+const ZCreateWorkspaceGroupColumn = ZGroupColumn.pick({
 	workspace_group_id: true,
 	title: true,
 	column_type: true,
@@ -108,10 +109,10 @@ export const createWorkspaceGroupColumn = withDbErrorHandling(
 			// create the workspace group column with the pos from above
 			const newWorkspaceGroupColumn = await client.query(
 				"INSERT INTO workspace_group_columns(workspace_group_id, title, column_type, pos) VALUES($1, $2, $3, $4) RETURNING *",
-				[values.workspace_group_id, values.title, 0, nextPos],
+				[values.workspace_group_id, values.name_, 0, nextPos],
 			);
 
-			const parsedNewWorkspaceGroupColumn = ZWorkspaceGroupColumn.array().parse(
+			const parsedNewWorkspaceGroupColumn = ZGroupColumn.array().parse(
 				newWorkspaceGroupColumn.rows,
 			)[0];
 
@@ -144,7 +145,7 @@ export const createWorkspaceGroupColumn = withDbErrorHandling(
 	},
 );
 
-const ZcreateWorkspaceGroupRow = ZWorkspaceGroupColumn.pick({
+const ZcreateWorkspaceGroupRow = ZGroupColumn.pick({
 	workspace_group_id: true,
 });
 export const createWorkspaceGroupRow = withDbErrorHandling(

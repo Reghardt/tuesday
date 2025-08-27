@@ -4,19 +4,17 @@ import { withDbErrorHandling } from "./dbUtils";
 
 export const ZWorkspace = z.object({
 	id: z.number(),
-	title: z.string(),
+	name_: z.string(),
 });
 
-type TWorkspace = z.infer<typeof ZWorkspace>;
-
-const ZCreateWorkspaceValues = ZWorkspace.pick({ title: true });
+const ZCreateWorkspaceValues = ZWorkspace.pick({ name_: true });
 export const createWorkspace = withDbErrorHandling(
 	async function createWorkspace(
 		client: Client,
 		values: z.infer<typeof ZCreateWorkspaceValues>,
 	) {
-		const res = await client.query("INSERT INTO workspaces(title) VALUES($1)", [
-			values.title,
+		const res = await client.query("INSERT INTO workspaces(name_) VALUES($1)", [
+			values.name_,
 		]);
 		return res;
 	},

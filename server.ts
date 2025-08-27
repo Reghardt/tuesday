@@ -14,7 +14,7 @@ import {
 import {
 	createWorkspaceGroupColumn,
 	createWorkspaceGroupRow,
-} from "./schemas/workspace_group_column";
+} from "./schemas/group_column";
 
 invariant(process.env.PG_USER, "PG_USER undefined");
 invariant(process.env.PG_PASSWORD, "PG_PASSWORD undefined");
@@ -46,7 +46,7 @@ export const appRouter = t.router({
 	createWorkspace: t.procedure
 		.input(z.object({ title: z.string().min(3) }))
 		.mutation(async (opts) => {
-			await createWorkspace(client, { title: opts.input.title });
+			await createWorkspace(client, { name_: opts.input.title });
 		}),
 	getWorkspaceGroups: t.procedure
 		.input(z.object({ workspace_id: z.number() }))
@@ -88,7 +88,7 @@ export const appRouter = t.router({
 		)
 		.mutation(async (opts) => {
 			await createWorkspaceGroupColumn(client, {
-				title: opts.input.title,
+				name_: opts.input.title,
 				workspace_group_id: opts.input.workspace_group_id,
 				column_type: 0,
 			});
