@@ -18,12 +18,14 @@ export function loader({ context }: Route.LoaderArgs) {
 export default function Home({ loaderData }: Route.ComponentProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const getWorspacesQuery = useQuery(trpc.getWorkspaces.queryOptions());
+  const getWorspacesQuery = useQuery(
+    trpc.workspaces.getWorkspaces.queryOptions()
+  );
   const createWorkspaceMutation = useMutation(
-    trpc.createWorkspace.mutationOptions({
+    trpc.workspaces.createWorkspace.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.getWorkspaces.queryKey(),
+          queryKey: trpc.workspaces.getWorkspaces.queryKey(),
         });
       },
     })
@@ -40,19 +42,19 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           onChange={(e) => setWorkspaceName(e.target.value)}
         ></input>
         <button
+          type="button"
           onClick={() =>
             createWorkspaceMutation.mutate({ title: workspaceName })
           }
         >
-          Create
+          Create Workspace
         </button>
       </div>
 
       {getWorspacesQuery.data?.map((row) => {
         return (
-          <div className="flex gap-2">
-            {/* <div>{row.id}</div> */}
-            <div>{row.title}</div>
+          <div className="flex gap-2" key={row.id}>
+            <div>{row.name_}</div>
             <Link to={`workspace/${row.id}`}>Go</Link>
           </div>
         );

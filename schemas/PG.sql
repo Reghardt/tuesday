@@ -4,7 +4,7 @@ CREATE DATABASE tuesday;
 
 \dt // lists tables
 
-DROP TABLE group_cells, group_rows, group_columns, workspace_groups, groups, workspaces;
+DROP TABLE group_cells, group_rows, group_columns, groups, workspaces;
 
 CREATE TABLE IF NOT EXISTS workspaces(
     id SERIAL PRIMARY KEY,
@@ -13,15 +13,15 @@ CREATE TABLE IF NOT EXISTS workspaces(
 
 CREATE TABLE IF NOT EXISTS groups(
     id SERIAL PRIMARY KEY,
-    pos INTEGER NOT NULL,
-    parent_group_row_id INTEGER -- REFERENCES group_rows(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS workspace_groups(
-    workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+    workspace_id INTEGER, -- REFERENCES workspaces(id) ON DELETE CASCADE
+    parent_group_row_id INTEGER, -- REFERENCES group_rows(id) ON DELETE CASCADE
     name_ TEXT NOT NULL,
-    PRIMARY KEY (workspace_id, group_id) -- Prevents duplicate relationships, also makes these two fields implicitly not null
+    pos INTEGER NOT NULL,
+    -- Ensure exactly one of the two foreign keys is set
+    CHECK (
+        (workspace_id IS NOT NULL AND parent_group_row_id IS NULL) OR
+        (workspace_id IS NULL AND parent_group_row_id IS NOT NULL)
+    )
 );
 
 
@@ -43,6 +43,24 @@ CREATE TABLE IF NOT EXISTS group_rows(
     UNIQUE (group_id, pos) -- prevent duplicate positions
 );
 
+ALTER TABLE groups 
+ADD CONSTRAINT fk_groups_workspace 
+FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE;
+
+ALTER TABLE groups 
+ADD CONSTRAINT fk_groups_parent_row 
+FOREIGN KEY (parent_group_row_id) REFERENCES group_rows(id) ON DELETE CASCADE;
+
+ALTER TABLE groups 
+ADD CONSTRAINT unique_pos_workspace 
+UNIQUE (workspace_id, pos) 
+WHERE parent_row_id IS NULL;
+
+ALTER TABLE groups 
+ADD CONSTRAINT unique_pos_parent 
+UNIQUE (parent_row_id, pos) 
+WHERE workspace_id IS NOT NULL;
+
 CREATE TABLE IF NOT EXISTS group_cells(
     group_row_id INTEGER NOT NULL REFERENCES group_rows(id) ON DELETE CASCADE,
     group_column_id INTEGER NOT NULL REFERENCES group_columns(id) ON DELETE CASCADE,
@@ -50,8 +68,6 @@ CREATE TABLE IF NOT EXISTS group_cells(
     PRIMARY KEY (group_row_id, group_column_id) -- one cell per intersection
 );
 
-ALTER TABLE groups
-ADD CONSTRAINT fk_groups_parent_group_row_id
-FOREIGN KEY (parent_group_row_id) REFERENCES group_rows(id) ON DELETE CASCADE;
+
 
 
