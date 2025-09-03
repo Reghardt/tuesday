@@ -4,7 +4,14 @@ CREATE DATABASE tuesday;
 
 \dt // lists tables
 
-DROP TABLE group_cells, group_rows, group_columns, groups, workspaces;
+ALTER TABLE groups DROP CONSTRAINT IF EXISTS fk_groups_parent_row;
+
+-- Drop all tables in reverse dependency order
+DROP TABLE IF EXISTS group_cells;
+DROP TABLE IF EXISTS group_rows;
+DROP TABLE IF EXISTS group_columns;
+DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS workspaces;
 
 CREATE TABLE IF NOT EXISTS workspaces(
     id SERIAL PRIMARY KEY,
@@ -51,15 +58,23 @@ ALTER TABLE groups
 ADD CONSTRAINT fk_groups_parent_row 
 FOREIGN KEY (parent_group_row_id) REFERENCES group_rows(id) ON DELETE CASCADE;
 
-ALTER TABLE groups 
-ADD CONSTRAINT unique_pos_workspace 
-UNIQUE (workspace_id, pos) 
-WHERE parent_row_id IS NULL;
+-- ALTER TABLE groups 
+-- ADD CONSTRAINT unique_pos_workspace 
+-- UNIQUE (workspace_id, pos) 
+-- WHERE parent_row_id IS NULL;
 
-ALTER TABLE groups 
-ADD CONSTRAINT unique_pos_parent 
-UNIQUE (parent_row_id, pos) 
-WHERE workspace_id IS NOT NULL;
+-- ALTER TABLE groups 
+-- ADD CONSTRAINT unique_pos_parent 
+-- UNIQUE (parent_row_id, pos) 
+-- WHERE workspace_id IS NOT NULL;
+
+CREATE UNIQUE INDEX CONCURRENTLY idx_groups_workspace_pos 
+ON groups (workspace_id, pos) 
+WHERE parent_group_row_id IS NULL;
+
+CREATE UNIQUE INDEX CONCURRENTLY idx_groups_parent_pos 
+ON groups (parent_group_row_id, pos) 
+WHERE workspace_id IS NULL;
 
 CREATE TABLE IF NOT EXISTS group_cells(
     group_row_id INTEGER NOT NULL REFERENCES group_rows(id) ON DELETE CASCADE,

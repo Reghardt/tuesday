@@ -1,8 +1,8 @@
-import type { Client } from "pg";
+import type { Client, PoolClient } from "pg";
 import z from "zod";
-import { withDbErrorHandling } from "./dbUtils";
 import { t } from "../utils/trpc";
-import { client } from "../utils/postgres";
+import { withDbErrorHandling, withTransaction } from "../utils/pool.server";
+import invariant from "tiny-invariant";
 
 export const ZWorkspace = z.object({
   id: z.number(),
@@ -11,31 +11,34 @@ export const ZWorkspace = z.object({
 
 const ZCreateWorkspaceValues = ZWorkspace.pick({ name_: true });
 export const createWorkspace = withDbErrorHandling(
-  async function createWorkspace(
-    client: Client,
-    values: z.infer<typeof ZCreateWorkspaceValues>
-  ) {
-    const res = await client.query("INSERT INTO workspaces(name_) VALUES($1)", [
-      values.name_,
-    ]);
+  "createWorkspace",
+  async (client: PoolClient, values: z.infer<typeof ZCreateWorkspaceValues>) => {
+    const res = await client.query("INSERT INTO workspaces(name_) VALUES($1)", [values.name_]);
     return res;
   }
 );
 
-export const getWorkspaces = withDbErrorHandling(async function getWorkspaces(
-  client: Client
-) {
+export const getWorkspaces = withDbErrorHandling("getWorkspaces", async (client: PoolClient) => {
   const res = await client.query("SELECT * from workspaces");
   return ZWorkspace.array().parse(res.rows);
 });
 
+const ZGetWorkspace = ZWorkspace.pick({ id: true });
+export const getWorkspace = withDbErrorHandling(
+  "getWorkspaces",
+  async (client: PoolClient, values: z.infer<typeof ZGetWorkspace>) => {
+    const res = await client.query("SELECT * from workspaces WHERE id = $1", [values.id]);
+    const parsedRes = ZWorkspace.array().parse(res.rows);
+
+    return parsedRes[0];
+  }
+);
+
 export const workspacesRouter = t.router({
   getWorkspaces: t.procedure.query(async () => {
-    return await getWorkspaces(client);
+    return await withTransaction((client) => getWorkspaces(client));
   }),
-  createWorkspace: t.procedure
-    .input(z.object({ title: z.string().min(3) }))
-    .mutation(async (opts) => {
-      await createWorkspace(client, { name_: opts.input.title });
-    }),
+  createWorkspace: t.procedure.input(z.object({ title: z.string().min(3) })).mutation(async (opts) => {
+    return await withTransaction((client) => createWorkspace(client, { name_: opts.input.title }));
+  }),
 });

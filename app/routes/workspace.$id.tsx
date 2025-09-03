@@ -3,11 +3,18 @@ import { useTRPC } from "~/utils/trpc";
 import type { Route } from "./+types/workspace.$id";
 import z from "zod";
 import { useState } from "react";
-import WorkspaceGroupColumn from "~/components/WorkspaceGroupColumns";
-import WorkspaceGroupColumns from "~/components/WorkspaceGroupColumns";
+import { getWorkspace } from "schemas/workspace";
+import { withTransaction } from "utils/pool.server";
+import WorkspaceGroupColumns from "~/components/GroupColumns";
 
-export function loader({ request, params }: Route.LoaderArgs) {
-  return { workspace_id: z.coerce.number().parse(params.id) };
+export async function loader({ request, params }: Route.LoaderArgs) {
+  const workspace_id = z.coerce.number().parse(params.id);
+  const workspace = await withTransaction((client) => getWorkspace(client, { id: workspace_id }));
+  if (workspace === undefined) {
+    throw Error("That Workspace Does not exist");
+  }
+
+  return { workspace_id: workspace_id };
 }
 
 export default function Component({ loaderData }: Route.ComponentProps) {
@@ -15,17 +22,17 @@ export default function Component({ loaderData }: Route.ComponentProps) {
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const getWorspaceGroupsQuery = useQuery(
-    trpc.getWorkspaceGroups.queryOptions({
+  const getGroupsQuery = useQuery(
+    trpc.groups.getGroupsWithWorkspaceParent.queryOptions({
       workspace_id: loaderData.workspace_id,
     })
   );
 
   const createWorkspaceMutation = useMutation(
-    trpc.createWorkspaceGroup.mutationOptions({
+    trpc.groups.createGroupWithWorkspaceParent.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.getWorkspaceGroups.queryKey(),
+          queryKey: trpc.groups.getGroupsWithWorkspaceParent.queryKey(),
         });
       },
     })
@@ -43,7 +50,7 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           onClick={() =>
             createWorkspaceMutation.mutate({
               workspace_id: loaderData.workspace_id,
-              title: workspaceGroupName,
+              name_: workspaceGroupName,
             })
           }
         >
@@ -51,13 +58,11 @@ export default function Component({ loaderData }: Route.ComponentProps) {
         </button>
       </div>
       <div>
-        {getWorspaceGroupsQuery.data?.map((workspaceGroup) => {
+        {getGroupsQuery.data?.map((group) => {
           return (
-            <div key={workspaceGroup.id}>
-              {/* <div>{workspaceGroup.id}</div>
-              <div>{workspaceGroup.workspace_id}</div> */}
-              <div>{workspaceGroup.title}</div>
-              <WorkspaceGroupColumns workspace_group_id={workspaceGroup.id} />
+            <div key={group.id}>
+              <div>{group.name_}</div>
+              <WorkspaceGroupColumns group_id={group.id} />
             </div>
           );
         })}

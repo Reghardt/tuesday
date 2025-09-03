@@ -3,18 +3,10 @@ import express from "express";
 import morgan from "morgan";
 import invariant from "tiny-invariant";
 import * as trpcExpress from "@trpc/server/adapters/express";
-import { z } from "zod";
 import { workspacesRouter } from "./schemas/workspace";
-import {
-  getGroupsByWorkspaceId,
-  createGroupWithWorkspaceParent,
-} from "./schemas/groups";
-import {
-  createWorkspaceGroupColumn,
-  createWorkspaceGroupRow,
-} from "./schemas/group_column";
-import { t } from "./utils/trpc";
-import { client } from "utils/postgres";
+import { groupsRouter } from "./schemas/groups";
+import { groupColumnsRouter } from "./schemas/group_column";
+import { createContext, t } from "./utils/trpc";
 
 invariant(process.env.PG_USER, "PG_USER undefined");
 invariant(process.env.PG_PASSWORD, "PG_PASSWORD undefined");
@@ -22,82 +14,63 @@ invariant(process.env.PG_DATABASE, "PG_DATABASE undefined");
 
 export const appRouter = t.router({
   workspaces: workspacesRouter,
-  getWorkspaceGroups: t.procedure
-    .input(z.object({ workspace_id: z.number() }))
-    .query(async (opts) => {
-      return await getGroupsByWorkspaceId(client, {
-        workspace_id: opts.input.workspace_id,
-      });
-    }),
-  createWorkspaceGroup: t.procedure
-    .input(z.object({ workspace_id: z.number(), title: z.string().min(3) }))
-    .mutation(async (opts) => {
-      await createGroupWithWorkspaceParent(client, {
-        title: opts.input.title,
-        workspace_id: opts.input.workspace_id,
-      });
-    }),
-  createWorkspaceGroupColumn: t.procedure
-    .input(
-      z.object({ workspace_group_id: z.number(), title: z.string().min(3) })
-    )
-    .mutation(async (opts) => {
-      await createWorkspaceGroupColumn(client, {
-        name_: opts.input.title,
-        workspace_group_id: opts.input.workspace_group_id,
-        column_type: 0,
-      });
-    }),
+  groups: groupsRouter,
+  groupColumns: groupColumnsRouter,
+  // createWorkspaceGroupColumn: t.procedure
+  //   .input(z.object({ workspace_group_id: z.number(), title: z.string().min(3) }))
+  //   .mutation(async (opts) => {
+  //     await createWorkspaceGroupColumn(client, {
+  //       name_: opts.input.title,
+  //       workspace_group_id: opts.input.workspace_group_id,
+  //       column_type: 0,
+  //     });
+  //   }),
 
-  getWorkspaceGroupContent: t.procedure
-    .input(z.object({ workspace_group_id: z.number() }))
-    .query(async (opts) => {
-      const res = await client.query(
-        ` SELECT 
-          c.id AS column_id,
-          c.workspace_group_id,
-          c.title,
-          c.column_type,
-          COALESCE(
-            jsonb_agg(
-              jsonb_build_object(
-                'id', i.id,
-                'content', i.content
-              )
-            ) FILTER (WHERE i.id IS NOT NULL),
-            '[]'::jsonb
-          ) AS items
-          FROM workspace_group_columns c
-          LEFT JOIN workspace_group_column_items i 
-            ON c.id = i.workspace_group_column_id
-          WHERE c.workspace_group_id = $1
-          GROUP BY c.id;`,
-        [opts.input.workspace_group_id]
-      );
+  // getWorkspaceGroupContent: t.procedure.input(z.object({ workspace_group_id: z.number() })).query(async (opts) => {
+  //   const res = await client.query(
+  //     ` SELECT
+  //         c.id AS column_id,
+  //         c.workspace_group_id,
+  //         c.title,
+  //         c.column_type,
+  //         COALESCE(
+  //           jsonb_agg(
+  //             jsonb_build_object(
+  //               'id', i.id,
+  //               'content', i.content
+  //             )
+  //           ) FILTER (WHERE i.id IS NOT NULL),
+  //           '[]'::jsonb
+  //         ) AS items
+  //         FROM workspace_group_columns c
+  //         LEFT JOIN workspace_group_column_items i
+  //           ON c.id = i.workspace_group_column_id
+  //         WHERE c.workspace_group_id = $1
+  //         GROUP BY c.id;`,
+  //     [opts.input.workspace_group_id]
+  //   );
 
-      console.log(res.rows);
+  //   console.log(res.rows);
 
-      const parsRes = z
-        .object({
-          column_id: z.number(),
-          workspace_group_id: z.number(),
-          title: z.string(),
-          column_type: z.number(),
-          items: z.any().array(),
-        })
-        .array()
-        .parse(res.rows);
+  //   const parsRes = z
+  //     .object({
+  //       column_id: z.number(),
+  //       workspace_group_id: z.number(),
+  //       title: z.string(),
+  //       column_type: z.number(),
+  //       items: z.any().array(),
+  //     })
+  //     .array()
+  //     .parse(res.rows);
 
-      return parsRes;
-    }),
+  //   return parsRes;
+  // }),
 
-  createWorkspaceGroupRow: t.procedure
-    .input(z.object({ workspace_group_id: z.number() }))
-    .mutation(async (opts) => {
-      await createWorkspaceGroupRow(client, {
-        workspace_group_id: opts.input.workspace_group_id,
-      });
-    }),
+  // createWorkspaceGroupRow: t.procedure.input(z.object({ workspace_group_id: z.number() })).mutation(async (opts) => {
+  //   await createWorkspaceGroupRow(client, {
+  //     workspace_group_id: opts.input.workspace_group_id,
+  //   });
+  // }),
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;
@@ -141,10 +114,7 @@ if (DEVELOPMENT) {
   });
 } else {
   console.log("Starting production server");
-  app.use(
-    "/assets",
-    express.static("build/client/assets", { immutable: true, maxAge: "1y" })
-  );
+  app.use("/assets", express.static("build/client/assets", { immutable: true, maxAge: "1y" }));
   app.use(morgan("tiny"));
   app.use(express.static("build/client", { maxAge: "1h" }));
   app.use(await import(BUILD_PATH).then((mod) => mod.app));
