@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTRPC } from "~/utils/trpc";
 import type { Route } from "./+types/workspace.$id";
 import z from "zod";
 import { useState } from "react";
-import { getWorkspace } from "schemas/workspace";
-import { withTransaction } from "utils/pool.server";
+import { getWorkspace } from "~/schemas/workspace";
 import WorkspaceGroupColumns from "~/components/GroupColumns";
+import { withTransaction } from "~/utils/pool.server";
+import { useTRPC } from "~/utils/trpc/trpc";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const workspace_id = z.coerce.number().parse(params.id);
-  const workspace = await withTransaction((client) => getWorkspace(client, { id: workspace_id }));
+  const workspace = await withTransaction((client) =>
+    getWorkspace(client, { id: workspace_id })
+  );
   if (workspace === undefined) {
     throw Error("That Workspace Does not exist");
   }
@@ -47,6 +49,7 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           onChange={(e) => setWorkspaceGroupName(e.target.value)}
         ></input>
         <button
+          type="button"
           onClick={() =>
             createWorkspaceMutation.mutate({
               workspace_id: loaderData.workspace_id,

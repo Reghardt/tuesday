@@ -1,13 +1,6 @@
-import type { Client, PoolClient } from "pg";
 import z from "zod";
-import {
-  createWorkspaceGroupColumnItem,
-  getWorkspaceGroupColumnItemsCount,
-  getWorkspaceGroupColumnItemsNextPos,
-} from "./group_cells";
-import invariant from "tiny-invariant";
-import { withDbErrorHandling, withTransaction } from "../utils/pool.server";
-import { t } from "../utils/trpc";
+import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
+import { t } from "~/utils/trpc/trpc.server";
 
 export const ZGroupColumn = z.object({
   id: z.number(),
@@ -33,7 +26,10 @@ const getGroupColumnsNextPos = withDbErrorHandling(
       [values.group_id]
     );
 
-    const parsedRes = z.object({ next_pos: z.number() }).array().parse(res.rows)[0];
+    const parsedRes = z
+      .object({ next_pos: z.number() })
+      .array()
+      .parse(res.rows)[0];
 
     if (parsedRes === undefined) {
       throw new Error("index 0 undefined");
@@ -52,7 +48,7 @@ export const getWorkspaceGroupColumn = withDbErrorHandling(
   async (client, values: z.infer<typeof ZGetWorkspaceGroupColumn>) => {
     const res = await client.query(
       `
-      SELECT 
+      SELECT
         *
       from group_columns as gc
       where gc.roup_id = $1 AND gc.pos = $2
@@ -73,7 +69,7 @@ export const getGroupColumns = withDbErrorHandling(
   async (client, values: z.infer<typeof ZGetGroupColumns>) => {
     const res = await client.query(
       `
-      SELECT 
+      SELECT
         *
       from group_columns as gc
       where gc.group_id = $1
@@ -160,15 +156,17 @@ export const createGroupColumn = withDbErrorHandling(
 // });
 
 export const groupColumnsRouter = t.router({
-  createGroupColumn: t.procedure.input(ZCreateGroupColumn).mutation(async (opts) => {
-    await withTransaction((client) =>
-      createGroupColumn(client, {
-        group_id: opts.input.group_id,
-        name_: opts.input.name_,
-        column_type: opts.input.column_type,
-      })
-    );
-  }),
+  createGroupColumn: t.procedure
+    .input(ZCreateGroupColumn)
+    .mutation(async (opts) => {
+      await withTransaction((client) =>
+        createGroupColumn(client, {
+          group_id: opts.input.group_id,
+          name_: opts.input.name_,
+          column_type: opts.input.column_type,
+        })
+      );
+    }),
   getGroupColumns: t.procedure.input(ZGetGroupColumns).query(async (opts) => {
     return await withTransaction((client) =>
       getGroupColumns(client, {
