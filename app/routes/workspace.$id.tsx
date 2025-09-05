@@ -40,7 +40,7 @@ export default function Component({ loaderData }: Route.ComponentProps) {
     })
   );
   return (
-    <div>
+    <div className="flex flex-col gap-2">
       <div>Workspace</div>
       <div>
         <input
@@ -60,7 +60,7 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           Create Group
         </button>
       </div>
-      <div>
+      <div className="flex flex-col gap-2">
         {getGroupsQuery.data?.map((group) => {
           return (
             <div key={group.id}>

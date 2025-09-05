@@ -14,13 +14,11 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
     })
   );
 
-  const getGroupData = useQuery(
+  const getGroupDataQuery = useQuery(
     trpc.groups.getGroupData.queryOptions({
       id: group_id,
     })
   );
-
-  console.log(getGroupData.data);
 
   const createGroupColumnMutation = useMutation(
     trpc.groupColumns.createGroupColumn.mutationOptions({
@@ -28,6 +26,9 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
         setWorkspaceGroupColumnName("");
         queryClient.invalidateQueries({
           queryKey: trpc.groupColumns.getGroupColumns.queryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: trpc.groups.getGroupData.queryKey(),
         });
       },
     })
@@ -37,7 +38,7 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
     trpc.groupRows.createGroupRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.groupRows.getGroupRows.queryKey(),
+          queryKey: trpc.groups.getGroupData.queryKey(),
         });
       },
     })
@@ -55,13 +56,49 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
     );
   };
 
-  return (
-    <div>
+  function createTable(
+    rows: typeof getGroupDataQuery.data,
+    columns: typeof getGroupColumnsQuery.data
+  ) {
+    return (
       <div className="flex gap-2">
-        {getGroupColumnsQuery.data?.map((column) => {
-          return <div key={column.id}>{column.name_}</div>;
-        })}
-        {/* {createGroupTable(getWorkspaceGroupContent.data)} */}
+        {columns?.length ? (
+          <table>
+            <thead>
+              <tr className="border">
+                {columns?.map((column) => {
+                  return (
+                    <th key={column.id} className="text-left border-l p-1 w-20">
+                      {column.name_}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+
+            <tbody>
+              {rows?.map((row) => {
+                return (
+                  <tr key={row.id} className="border">
+                    {row.cells.map((cell) => {
+                      return (
+                        <td
+                          key={`${cell.group_column_id}_${cell.group_row_id}`}
+                          className="text-left border-l p-1"
+                        >
+                          <input />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <></>
+        )}
+
         <div>
           <input
             className="border border-white"
@@ -82,6 +119,14 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
           </button>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2"></div>
+
+      {createTable(getGroupDataQuery.data, getGroupColumnsQuery.data)}
 
       <div>
         <button

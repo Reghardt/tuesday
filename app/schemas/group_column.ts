@@ -1,11 +1,17 @@
 import z from "zod";
-import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
+import {
+  getRowId,
+  withDbErrorHandling,
+  withTransaction,
+} from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
+import { getGroupRows } from "./group_rows";
+import { createGroupCell } from "./group_cells";
 
 export const ZGroupColumn = z.object({
   id: z.number(),
   group_id: z.number(),
-  name_: z.string(),
+  name_: z.string().min(1),
   column_type: z.number(),
   type_properties: z.json(),
   pos: z.number(),
@@ -95,10 +101,24 @@ export const createGroupColumn = withDbErrorHandling(
     });
 
     // create the workspace group column with the pos from above
-    const newWorkspaceGroupColumn = await client.query(
-      "INSERT INTO group_columns(group_id, name_, column_type, type_properties, pos) VALUES($1, $2, $3, $4, $5) RETURNING *",
-      [values.group_id, values.name_, 0, {}, nextPos]
+    const group_column_id = getRowId(
+      await client.query(
+        "INSERT INTO group_columns(group_id, name_, column_type, type_properties, pos) VALUES($1, $2, $3, $4, $5) RETURNING *",
+        [values.group_id, values.name_, 0, {}, nextPos]
+      )
     );
+
+    const group_rows = await getGroupRows(client, {
+      group_id: values.group_id,
+    });
+
+    for (let i = 0; i < group_rows.length; i++) {
+      await createGroupCell(client, {
+        group_row_id: group_rows[i].id,
+        group_column_id: group_column_id,
+        content: {},
+      });
+    }
 
     // const parsedNewWorkspaceGroupColumn = ZGroupColumn.array().parse(newWorkspaceGroupColumn.rows)[0];
 

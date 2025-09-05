@@ -73,7 +73,7 @@ const createGroupRow = withDbErrorHandling(
 );
 
 const ZGetGroupRows = ZGroupRow.pick({ group_id: true });
-const getGroupRows = withDbErrorHandling(
+export const getGroupRows = withDbErrorHandling(
   "getGroupRows",
   async (client, values: z.infer<typeof ZGetGroupRows>) => {
     const res = await client.query(

@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS group_columns(
 
 CREATE TABLE IF NOT EXISTS group_rows(
     id SERIAL PRIMARY KEY,
-    group_id INTEGER NOT NULL REFERENCES groups(id),
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
     pos INTEGER NOT NULL,
     UNIQUE (group_id, pos) -- prevent duplicate positions
 );
