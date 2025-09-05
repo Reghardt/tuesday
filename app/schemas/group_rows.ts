@@ -1,7 +1,98 @@
 import z from "zod";
+import {
+  getRowId,
+  withDbErrorHandling,
+  withTransaction,
+} from "~/utils/pool.server";
+import { t } from "~/utils/trpc/trpc.server";
+import { getGroupColumns } from "./group_column";
+import { createGroupCell } from "./group_cells";
 
 export const ZGroupRow = z.object({
   id: z.number(),
   group_id: z.number(),
   pos: z.number(),
+});
+
+const ZGetGroupRowsNextColumn = ZGroupRow.pick({ group_id: true });
+const getGroupRowsNextColumn = withDbErrorHandling(
+  "getGroupRowsNextColumn",
+  async (client, values: z.infer<typeof ZGetGroupRowsNextColumn>) => {
+    const res = await client.query(
+      `
+        SELECT COALESCE(MAX(pos), -1) + 1 as next_pos
+        FROM group_rows
+        WHERE group_id = $1
+          `,
+      [values.group_id]
+    );
+
+    const parsedRes = z
+      .object({ next_pos: z.number() })
+      .array()
+      .parse(res.rows)[0];
+
+    if (parsedRes === undefined) {
+      throw new Error("index 0 undefined");
+    }
+
+    return parsedRes.next_pos;
+  }
+);
+
+const ZCreateGroupRow = ZGroupRow.pick({ group_id: true });
+const createGroupRow = withDbErrorHandling(
+  "createGroupRow",
+  async (client, values: z.infer<typeof ZCreateGroupRow>) => {
+    const nextPos = await getGroupRowsNextColumn(client, {
+      group_id: values.group_id,
+    });
+
+    const group_row_id = getRowId(
+      await client.query(
+        `
+          INSERT INTO group_rows(group_id, pos) 
+          VALUES($1, $2) 
+          RETURNING id;
+          `,
+        [values.group_id, nextPos]
+      )
+    );
+
+    const group_columns = await getGroupColumns(client, {
+      group_id: values.group_id,
+    });
+    for (let i = 0; i < group_columns.length; i++) {
+      await createGroupCell(client, {
+        group_row_id: group_row_id,
+        group_column_id: group_columns[i].id,
+        content: {},
+      });
+    }
+  }
+);
+
+const ZGetGroupRows = ZGroupRow.pick({ group_id: true });
+const getGroupRows = withDbErrorHandling(
+  "getGroupRows",
+  async (client, values: z.infer<typeof ZGetGroupRows>) => {
+    const res = await client.query(
+      `SELECT * FROM group_rows WHERE group_id = $1`,
+      [values.group_id]
+    );
+    return ZGroupRow.array().parse(res.rows);
+  }
+);
+
+export const groupRowsRouter = t.router({
+  createGroupRow: t.procedure.input(ZCreateGroupRow).mutation(async (opts) => {
+    await withTransaction(async (client) => {
+      await createGroupRow(client, { group_id: opts.input.group_id });
+    });
+  }),
+  getGroupRows: t.procedure.input(ZGetGroupRows).query(async (opts) => {
+    return await withTransaction(async (client) => {
+      return getGroupRows(client, { group_id: opts.input.group_id });
+    });
+  }),
 });

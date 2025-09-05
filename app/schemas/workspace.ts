@@ -4,13 +4,13 @@ import { t } from "~/utils/trpc/trpc.server";
 
 export const ZWorkspace = z.object({
   id: z.number(),
-  name_: z.string(),
+  name_: z.string().min(1),
 });
 
-const ZCreateWorkspaceValues = ZWorkspace.pick({ name_: true });
+const ZCreateWorkspace = ZWorkspace.pick({ name_: true });
 export const createWorkspace = withDbErrorHandling(
   "createWorkspace",
-  async (client, values: z.infer<typeof ZCreateWorkspaceValues>) => {
+  async (client, values: z.infer<typeof ZCreateWorkspace>) => {
     const res = await client.query("INSERT INTO workspaces(name_) VALUES($1)", [
       values.name_,
     ]);
@@ -21,14 +21,15 @@ export const createWorkspace = withDbErrorHandling(
 export const getWorkspaces = withDbErrorHandling(
   "getWorkspaces",
   async (client) => {
-    const res = await client.query("SELECT * from workspaces");
+    console.log("test");
+    const res = await client.query("SELECT * FROM workspaces");
     return ZWorkspace.array().parse(res.rows);
   }
 );
 
 const ZGetWorkspace = ZWorkspace.pick({ id: true });
 export const getWorkspace = withDbErrorHandling(
-  "getWorkspaces",
+  "getWorkspace",
   async (client, values: z.infer<typeof ZGetWorkspace>) => {
     const res = await client.query("SELECT * from workspaces WHERE id = $1", [
       values.id,
@@ -44,10 +45,10 @@ export const workspacesRouter = t.router({
     return await withTransaction((client) => getWorkspaces(client));
   }),
   createWorkspace: t.procedure
-    .input(z.object({ title: z.string().min(3) }))
+    .input(ZCreateWorkspace)
     .mutation(async (opts) => {
       return await withTransaction((client) =>
-        createWorkspace(client, { name_: opts.input.title })
+        createWorkspace(client, { name_: opts.input.name_ })
       );
     }),
 });

@@ -2,12 +2,13 @@ import { workspacesRouter } from "~/schemas/workspace";
 import { t } from "./trpc.server";
 import { groupsRouter } from "~/schemas/groups";
 import { groupColumnsRouter } from "~/schemas/group_column";
+import { groupRowsRouter } from "~/schemas/group_rows";
 
 export const appRouter = t.router({
-  test: t.procedure.query(() => "Hello test"),
   workspaces: workspacesRouter,
   groups: groupsRouter,
   groupColumns: groupColumnsRouter,
+  groupRows: groupRowsRouter,
 });
 
 // Export only the type of a router!

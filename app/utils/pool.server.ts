@@ -1,5 +1,6 @@
-import { Pool, type PoolClient } from "pg";
+import { Pool, type PoolClient, type QueryResult } from "pg";
 import invariant from "tiny-invariant";
+import z from "zod";
 
 invariant(process.env.PG_HOST, "PG_HOST undefined");
 invariant(process.env.PG_USER, "PG_USER undefined");
@@ -18,7 +19,9 @@ const pool = new Pool({
   maxLifetimeSeconds: 600,
 });
 
-export async function withTransaction<T>(callback: (pool: PoolClient) => Promise<T>): Promise<T> {
+export async function withTransaction<T>(
+  callback: (pool: PoolClient) => Promise<T>
+): Promise<T> {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -42,7 +45,12 @@ export function withDbErrorHandling<T extends unknown[], R>(
       return await fn(client, ...args);
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      console.log(`${debug_query_name} failed, ${e}`);
       throw new Error(`${debug_query_name} failed, ${e}`);
     }
   };
+}
+
+export function getRowId(queryResult: QueryResult<any>) {
+  return z.number().parse(queryResult.rows[0].id);
 }

@@ -1,8 +1,10 @@
 CREATE DATABASE tuesday;
 
-\c tuesday // selects db
+\c tuesday -- selects db
 
-\dt // lists tables
+\dt -- lists tables
+
+\l -- list databases
 
 ALTER TABLE groups DROP CONSTRAINT IF EXISTS fk_groups_parent_row;
 
