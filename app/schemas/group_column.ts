@@ -119,61 +119,19 @@ export const createGroupColumn = withDbErrorHandling(
         content: {},
       });
     }
-
-    // const parsedNewWorkspaceGroupColumn = ZGroupColumn.array().parse(newWorkspaceGroupColumn.rows)[0];
-
-    // invariant(parsedNewWorkspaceGroupColumn, "parsedNewWorkspaceGroupColumn undefined");
-
-    // const workspaceGroupColumn = await getWorkspaceGroupColumn(client, {
-    //   group_id: values.group_id,
-    //   pos: 0,
-    // });
-
-    // let count = 0;
-
-    // if (workspaceGroupColumn !== undefined) {
-    //   count = await getWorkspaceGroupColumnItemsCount(client, {
-    //     workspace_group_column_id: workspaceGroupColumn.id,
-    //   });
-    // }
-
-    // for (let i = 0; i < count; i++) {
-    //   await createWorkspaceGroupColumnItem(client, {
-    //     workspace_group_column_id: parsedNewWorkspaceGroupColumn.id,
-    //     content: { value: "" },
-    //     pos: i,
-    //   });
-    // }
   }
 );
 
-// const ZcreateWorkspaceGroupRow = ZGroupColumn.pick({
-//   workspace_group_id: true,
-// });
-// export const createWorkspaceGroupRow = withDbErrorHandling(async function createWorkspaceGroupRow(
-//   client,
-//   values: z.infer<typeof ZcreateWorkspaceGroupRow>
-// ) {
-//   await withTransaction(client, async () => {
-//     const workspaceGroupColumns = await getGroupColumns(client, {
-//       workspace_group_id: values.workspace_group_id,
-//     });
-
-//     if (workspaceGroupColumns.length > 0) {
-//       const nextPos = await getWorkspaceGroupColumnItemsNextPos(client, {
-//         workspace_group_column_id: workspaceGroupColumns[0]!.id,
-//       });
-
-//       for (let i = 0; i < workspaceGroupColumns.length; i++) {
-//         await createWorkspaceGroupColumnItem(client, {
-//           workspace_group_column_id: workspaceGroupColumns[i]!.id,
-//           content: { value: "" },
-//           pos: nextPos,
-//         });
-//       }
-//     }
-//   });
-// });
+const ZDeleteGroupColumn = ZGroupColumn.pick({ id: true, group_id: true });
+export const deleteGroupColumn = withDbErrorHandling(
+  "deleteGroupColumn",
+  async (client, values: z.infer<typeof ZDeleteGroupColumn>) => {
+    await client.query(
+      "DELETE FROM group_columns WHERE id = $1 AND group_id = $2",
+      [values.id, values.group_id]
+    );
+  }
+);
 
 export const groupColumnsRouter = t.router({
   createGroupColumn: t.procedure
@@ -194,4 +152,14 @@ export const groupColumnsRouter = t.router({
       })
     );
   }),
+  deleteGroupColumns: t.procedure
+    .input(ZDeleteGroupColumn)
+    .mutation(async (opts) => {
+      return await withTransaction((client) =>
+        deleteGroupColumn(client, {
+          id: opts.input.id,
+          group_id: opts.input.group_id,
+        })
+      );
+    }),
 });

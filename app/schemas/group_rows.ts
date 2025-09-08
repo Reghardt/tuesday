@@ -84,6 +84,17 @@ export const getGroupRows = withDbErrorHandling(
   }
 );
 
+const ZDeleteGroupRow = ZGroupRow.pick({ id: true, group_id: true });
+const deleteGroupRow = withDbErrorHandling(
+  "deleteGroupRow",
+  async (client, values: z.infer<typeof ZDeleteGroupRow>) => {
+    await client.query(
+      `DELETE FROM group_rows WHERE id = $1 AND group_id = $2`,
+      [values.id, values.group_id]
+    );
+  }
+);
+
 export const groupRowsRouter = t.router({
   createGroupRow: t.procedure.input(ZCreateGroupRow).mutation(async (opts) => {
     await withTransaction(async (client) => {
@@ -93,6 +104,15 @@ export const groupRowsRouter = t.router({
   getGroupRows: t.procedure.input(ZGetGroupRows).query(async (opts) => {
     return await withTransaction(async (client) => {
       return getGroupRows(client, { group_id: opts.input.group_id });
+    });
+  }),
+
+  deleteGroupRow: t.procedure.input(ZDeleteGroupRow).mutation(async (opts) => {
+    await withTransaction(async (client) => {
+      await deleteGroupRow(client, {
+        id: opts.input.id,
+        group_id: opts.input.group_id,
+      });
     });
   }),
 });
