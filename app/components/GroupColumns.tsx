@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FC, type JSX } from "react";
+import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
 
 const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
+  const navigate = useNavigate();
   const [workspaceGroupColumnName, setWorkspaceGroupColumnName] = useState("");
 
   const trpc = useTRPC();
@@ -17,20 +19,6 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
   const getGroupDataQuery = useQuery(
     trpc.groups.getGroupData.queryOptions({
       id: group_id,
-    })
-  );
-
-  const createGroupColumnMutation = useMutation(
-    trpc.groupColumns.createGroupColumn.mutationOptions({
-      onSuccess: () => {
-        setWorkspaceGroupColumnName("");
-        queryClient.invalidateQueries({
-          queryKey: trpc.groupColumns.getGroupColumns.queryKey(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: trpc.groups.getGroupData.queryKey(),
-        });
-      },
     })
   );
 
@@ -85,12 +73,12 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
   ) {
     return (
       <div className="flex gap-2">
-        {columns?.length ? (
-          <table>
-            <thead>
-              <tr className="">
-                {columns?.map((column) => {
-                  return (
+        <table>
+          <thead>
+            <tr className="">
+              {columns?.map((column) => {
+                return (
+                  <>
                     <th key={column.id} className="text-left border  w-20">
                       <div className="flex gap-2">
                         <div className="p-1">{column.name_}</div>
@@ -107,27 +95,38 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
                         </button>
                       </div>
                     </th>
-                  );
-                })}
-              </tr>
-            </thead>
+                  </>
+                );
+              })}
+              <th>
+                <button
+                  className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
+                  onClick={() => navigate(`createColumn/${group_id}`)}
+                >
+                  Create Column
+                </button>
+              </th>
+            </tr>
+          </thead>
 
-            <tbody>
-              {rows?.map((row) => {
-                return (
-                  <>
-                    <tr key={row.id}>
-                      {row.cells.map((cell) => {
-                        return (
-                          <td
-                            key={`${cell.group_column_id}_${cell.group_row_id}`}
-                            className="text-left border p-1"
-                          >
-                            <input />
-                          </td>
-                        );
-                      })}
+          <tbody>
+            {rows?.map((row) => {
+              return (
+                <>
+                  <tr key={row.id}>
+                    {row.cells.map((cell) => {
+                      console.log(cell.content);
+                      return (
+                        <td
+                          key={`${cell.group_column_id}_${cell.group_row_id}`}
+                          className="text-left border p-1"
+                        >
+                          <input defaultValue={cell.content.value} />
+                        </td>
+                      );
+                    })}
 
+                    {row.cells.length > 0 ? (
                       <td className="">
                         <button
                           onClick={() =>
@@ -141,35 +140,15 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
                           Delete Row
                         </button>
                       </td>
-                    </tr>
-                  </>
-                );
-              })}
-            </tbody>
-          </table>
-        ) : (
-          <></>
-        )}
-
-        <div>
-          <input
-            className="border border-white"
-            type="text"
-            value={workspaceGroupColumnName}
-            onChange={(e) => setWorkspaceGroupColumnName(e.target.value)}
-          ></input>
-          <button
-            onClick={() =>
-              createGroupColumnMutation.mutate({
-                group_id: group_id,
-                name_: workspaceGroupColumnName,
-                column_type: 0,
-              })
-            }
-          >
-            Create Column
-          </button>
-        </div>
+                    ) : (
+                      <></>
+                    )}
+                  </tr>
+                </>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     );
   }

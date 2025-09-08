@@ -1,14 +1,12 @@
-    People              {user_id: 1234}
-    Status (enum)       
-    Priority (enum)
 0   Text
-    Long Text
 1   Number
-    File
 2   Date
-    Timeline
-    Time 
-    Tags
-    Checkbox
-
-    updates column
+3   Time 
+4   Status (enum) 
+5   Priority (enum)  
+6   People              {user_id: 1234}
+7   File
+8   Timeline
+9   Tags
+10  Checkbox
+11  updates column

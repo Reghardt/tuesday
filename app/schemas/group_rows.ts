@@ -7,6 +7,7 @@ import {
 import { t } from "~/utils/trpc/trpc.server";
 import { getGroupColumns } from "./group_column";
 import { createGroupCell } from "./group_cells";
+import { ZEGroupColumnTypes } from "~/enums/groupColumnTypes";
 
 export const ZGroupRow = z.object({
   id: z.number(),
@@ -63,11 +64,25 @@ const createGroupRow = withDbErrorHandling(
       group_id: values.group_id,
     });
     for (let i = 0; i < group_columns.length; i++) {
-      await createGroupCell(client, {
-        group_row_id: group_row_id,
-        group_column_id: group_columns[i].id,
-        content: {},
-      });
+      console.log(group_columns[i]);
+      console.log("TEXt");
+      if (group_columns[i].column_type === ZEGroupColumnTypes.enum.text) {
+        await createGroupCell(client, {
+          group_row_id: group_row_id,
+          group_column_id: group_columns[i].id,
+          content: { value: "" },
+        });
+      } else if (
+        group_columns[i].column_type === ZEGroupColumnTypes.enum.number_
+      ) {
+        console.log("number");
+
+        await createGroupCell(client, {
+          group_row_id: group_row_id,
+          group_column_id: group_columns[i].id,
+          content: { value: 0 },
+        });
+      }
     }
   }
 );

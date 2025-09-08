@@ -7,12 +7,13 @@ import {
 import { t } from "~/utils/trpc/trpc.server";
 import { getGroupRows } from "./group_rows";
 import { createGroupCell } from "./group_cells";
+import { ZEGroupColumnTypes } from "~/enums/groupColumnTypes";
 
 export const ZGroupColumn = z.object({
   id: z.number(),
   group_id: z.number(),
-  name_: z.string().min(1),
-  column_type: z.number(),
+  name_: z.string().trim().min(1),
+  column_type: ZEGroupColumnTypes,
   type_properties: z.json(),
   pos: z.number(),
 });
@@ -104,7 +105,7 @@ export const createGroupColumn = withDbErrorHandling(
     const group_column_id = getRowId(
       await client.query(
         "INSERT INTO group_columns(group_id, name_, column_type, type_properties, pos) VALUES($1, $2, $3, $4, $5) RETURNING *",
-        [values.group_id, values.name_, 0, {}, nextPos]
+        [values.group_id, values.name_, values.column_type, {}, nextPos]
       )
     );
 
@@ -112,12 +113,22 @@ export const createGroupColumn = withDbErrorHandling(
       group_id: values.group_id,
     });
 
-    for (let i = 0; i < group_rows.length; i++) {
-      await createGroupCell(client, {
-        group_row_id: group_rows[i].id,
-        group_column_id: group_column_id,
-        content: {},
-      });
+    if (values.column_type === ZEGroupColumnTypes.enum.text) {
+      for (let i = 0; i < group_rows.length; i++) {
+        await createGroupCell(client, {
+          group_row_id: group_rows[i].id,
+          group_column_id: group_column_id,
+          content: { value: "" },
+        });
+      }
+    } else if (values.column_type === ZEGroupColumnTypes.enum.number_) {
+      for (let i = 0; i < group_rows.length; i++) {
+        await createGroupCell(client, {
+          group_row_id: group_rows[i].id,
+          group_column_id: group_column_id,
+          content: { value: 0 },
+        });
+      }
     }
   }
 );

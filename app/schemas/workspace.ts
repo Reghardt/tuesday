@@ -4,7 +4,7 @@ import { t } from "~/utils/trpc/trpc.server";
 
 export const ZWorkspace = z.object({
   id: z.number(),
-  name_: z.string().min(1),
+  name_: z.string().trim().min(1),
 });
 
 const ZCreateWorkspace = ZWorkspace.pick({ name_: true });

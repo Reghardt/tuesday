@@ -58,7 +58,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         return (
           <div className="flex gap-2" key={row.id}>
             <div>{row.name_}</div>
-            <Link to={`workspace/${row.id}`}>Go</Link>
+            <Link to={`${row.id}`}>Go</Link>
           </div>
         );
       })}

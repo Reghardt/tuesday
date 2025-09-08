@@ -10,7 +10,7 @@ export const ZGroup = z.object({
   id: z.number(),
   workspace_id: z.number().nullable(),
   parent_group_row_id: z.number().nullable(),
-  name_: z.string(),
+  name_: z.string().trim().min(1),
   pos: z.number(),
 });
 
@@ -101,7 +101,7 @@ const getGroupData = withDbErrorHandling(
                   'type_properties', group_columns.type_properties,
                   'pos', group_columns.pos
               ) ORDER BY group_columns.pos ASC
-        ),
+        ) FILTER (WHERE group_cells.group_row_id IS NOT NULL),
         '[]'::json
       ) as cells
       FROM group_rows
