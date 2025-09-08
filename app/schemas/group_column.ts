@@ -1,9 +1,5 @@
 import z from "zod";
-import {
-  getRowId,
-  withDbErrorHandling,
-  withTransaction,
-} from "~/utils/pool.server";
+import { getRowId, withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 import { getGroupRows } from "./group_rows";
 import { createGroupCell } from "./group_cells";
@@ -33,10 +29,7 @@ const getGroupColumnsNextPos = withDbErrorHandling(
       [values.group_id]
     );
 
-    const parsedRes = z
-      .object({ next_pos: z.number() })
-      .array()
-      .parse(res.rows)[0];
+    const parsedRes = z.object({ next_pos: z.number() }).array().parse(res.rows)[0];
 
     if (parsedRes === undefined) {
       throw new Error("index 0 undefined");
@@ -85,6 +78,26 @@ export const getGroupColumns = withDbErrorHandling(
     );
 
     return ZGroupColumn.array().parse(res.rows);
+  }
+);
+
+const ZGetGroupColumn = ZGroupColumn.pick({
+  id: true,
+});
+export const getGroupColumn = withDbErrorHandling(
+  "getGroupColumn",
+  async (client, values: z.infer<typeof ZGetGroupColumn>) => {
+    const res = await client.query(
+      `
+      SELECT
+        *
+      from group_columns as gc
+      where gc.id = $1
+      `,
+      [values.id]
+    );
+
+    return ZGroupColumn.array().parse(res.rows)[0];
   }
 );
 
@@ -137,25 +150,20 @@ const ZDeleteGroupColumn = ZGroupColumn.pick({ id: true, group_id: true });
 export const deleteGroupColumn = withDbErrorHandling(
   "deleteGroupColumn",
   async (client, values: z.infer<typeof ZDeleteGroupColumn>) => {
-    await client.query(
-      "DELETE FROM group_columns WHERE id = $1 AND group_id = $2",
-      [values.id, values.group_id]
-    );
+    await client.query("DELETE FROM group_columns WHERE id = $1 AND group_id = $2", [values.id, values.group_id]);
   }
 );
 
 export const groupColumnsRouter = t.router({
-  createGroupColumn: t.procedure
-    .input(ZCreateGroupColumn)
-    .mutation(async (opts) => {
-      await withTransaction((client) =>
-        createGroupColumn(client, {
-          group_id: opts.input.group_id,
-          name_: opts.input.name_,
-          column_type: opts.input.column_type,
-        })
-      );
-    }),
+  createGroupColumn: t.procedure.input(ZCreateGroupColumn).mutation(async (opts) => {
+    await withTransaction((client) =>
+      createGroupColumn(client, {
+        group_id: opts.input.group_id,
+        name_: opts.input.name_,
+        column_type: opts.input.column_type,
+      })
+    );
+  }),
   getGroupColumns: t.procedure.input(ZGetGroupColumns).query(async (opts) => {
     return await withTransaction((client) =>
       getGroupColumns(client, {
@@ -163,14 +171,12 @@ export const groupColumnsRouter = t.router({
       })
     );
   }),
-  deleteGroupColumns: t.procedure
-    .input(ZDeleteGroupColumn)
-    .mutation(async (opts) => {
-      return await withTransaction((client) =>
-        deleteGroupColumn(client, {
-          id: opts.input.id,
-          group_id: opts.input.group_id,
-        })
-      );
-    }),
+  deleteGroupColumns: t.procedure.input(ZDeleteGroupColumn).mutation(async (opts) => {
+    return await withTransaction((client) =>
+      deleteGroupColumn(client, {
+        id: opts.input.id,
+        group_id: opts.input.group_id,
+      })
+    );
+  }),
 });

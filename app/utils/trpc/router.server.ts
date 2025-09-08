@@ -3,12 +3,14 @@ import { t } from "./trpc.server";
 import { groupsRouter } from "~/schemas/groups";
 import { groupColumnsRouter } from "~/schemas/group_column";
 import { groupRowsRouter } from "~/schemas/group_rows";
+import { groupCellsRouter } from "~/schemas/group_cells";
 
 export const appRouter = t.router({
   workspaces: workspacesRouter,
   groups: groupsRouter,
   groupColumns: groupColumnsRouter,
   groupRows: groupRowsRouter,
+  groupCells: groupCellsRouter,
 });
 
 // Export only the type of a router!

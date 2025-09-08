@@ -1,4 +1,5 @@
-import z from "zod";
+import type { JSONType } from "node_modules/zod/v4/core/util.cjs";
+import z from "zod/v4";
 
 export const ZEGroupColumnTypes = z.enum({
   text: 0,
@@ -14,3 +15,25 @@ export const ZEGroupColumnTypes = z.enum({
   checkbox: 10,
   updates: 11,
 });
+
+export const textColumnTypeCodec = {
+  encode: (value: string) => {
+    return {
+      value,
+    };
+  },
+  decode: (content: JSONType) => {
+    return z.object({ value: z.string() }).parse(content).value;
+  },
+};
+
+export const numberColumnTypeCodec = {
+  encode: (value: number) => {
+    return {
+      value,
+    };
+  },
+  decode: (content: JSONType) => {
+    return z.object({ value: z.number() }).parse(content).value;
+  },
+};

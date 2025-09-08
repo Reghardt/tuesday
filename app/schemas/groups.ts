@@ -17,14 +17,8 @@ export const ZGroup = z.object({
 const ZGetGroupsWithWorkspaceParent = ZGroup.pick({ workspace_id: true });
 export const getGroupsWithWorkspaceParent = withDbErrorHandling(
   "getGroupsWithWorkspaceParent",
-  async (
-    client: PoolClient,
-    values: z.infer<typeof ZGetGroupsWithWorkspaceParent>
-  ) => {
-    const res = await client.query(
-      "SELECT * from groups WHERE workspace_id = $1",
-      [values.workspace_id]
-    );
+  async (client: PoolClient, values: z.infer<typeof ZGetGroupsWithWorkspaceParent>) => {
+    const res = await client.query("SELECT * from groups WHERE workspace_id = $1", [values.workspace_id]);
 
     return ZGroup.array().parse(res.rows);
   }
@@ -33,10 +27,7 @@ export const getGroupsWithWorkspaceParent = withDbErrorHandling(
 const ZGetGroupsNextWorkspacePos = ZGroup.pick({ workspace_id: true });
 const getGroupsNexWorkspacePos = withDbErrorHandling(
   "getGroupsNexWorkspacePos",
-  async (
-    client: PoolClient,
-    values: z.infer<typeof ZGetGroupsNextWorkspacePos>
-  ) => {
+  async (client: PoolClient, values: z.infer<typeof ZGetGroupsNextWorkspacePos>) => {
     const res = await client.query(
       `
 				SELECT COALESCE(MAX(pos), -1) + 1 as next_pos
@@ -46,10 +37,7 @@ const getGroupsNexWorkspacePos = withDbErrorHandling(
       [values.workspace_id]
     );
 
-    const parsedRes = z
-      .object({ next_pos: z.number() })
-      .array()
-      .parse(res.rows)[0];
+    const parsedRes = z.object({ next_pos: z.number() }).array().parse(res.rows)[0];
 
     if (parsedRes === undefined) {
       throw new Error("index 0 undefined");
@@ -65,28 +53,31 @@ const ZCreateGroupWithWorkspaceParent = ZGroup.pick({
 });
 export const createGroupWithWorkspaceParent = withDbErrorHandling(
   "createGroupWithWorkspaceParent",
-  async (
-    client: PoolClient,
-    values: z.infer<typeof ZCreateGroupWithWorkspaceParent>
-  ) => {
+  async (client: PoolClient, values: z.infer<typeof ZCreateGroupWithWorkspaceParent>) => {
     console.log(values);
     const nextPos = await getGroupsNexWorkspacePos(client, {
       workspace_id: values.workspace_id,
     });
 
-    return await client.query(
-      "INSERT INTO groups(workspace_id, name_, pos) VALUES($1, $2, $3)",
-      [values.workspace_id, values.name_, nextPos]
-    );
+    return await client.query("INSERT INTO groups(workspace_id, name_, pos) VALUES($1, $2, $3)", [
+      values.workspace_id,
+      values.name_,
+      nextPos,
+    ]);
   }
 );
 
 const ZGetGroupData = ZGroup.pick({ id: true });
-const getGroupData = withDbErrorHandling(
-  "getGroupData",
-  async (client, values: z.infer<typeof ZGetGroupData>) => {
-    const res = await client.query(
-      `
+export const ZGroupCellExtended = ZGroupCell.extend(
+  ZGroupColumn.pick({
+    column_type: true,
+    type_properties: true,
+    pos: true,
+  }).shape
+);
+const getGroupData = withDbErrorHandling("getGroupData", async (client, values: z.infer<typeof ZGetGroupData>) => {
+  const res = await client.query(
+    `
       SELECT
       group_rows.id,
       group_rows.group_id,
@@ -111,50 +102,37 @@ const getGroupData = withDbErrorHandling(
       GROUP BY group_rows.id, group_rows.group_id, group_rows.pos
       ORDER BY group_rows.pos ASC
       `,
-      [values.id]
-    );
+    [values.id]
+  );
 
-    const parsedRes = ZGroupRow.extend({
-      cells: ZGroupCell.extend(
-        ZGroupColumn.pick({
-          column_type: true,
-          type_properties: true,
-          pos: true,
-        }).shape
-      ).array(),
-    })
-      .array()
-      .parse(res.rows);
+  const parsedRes = ZGroupRow.extend({
+    cells: ZGroupCellExtended.array(),
+  })
+    .array()
+    .parse(res.rows);
 
-    console.log(parsedRes);
-    return parsedRes;
-  }
-);
+  console.log(parsedRes);
+  return parsedRes;
+});
 
 export const groupsRouter = t.router({
-  getGroupsWithWorkspaceParent: t.procedure
-    .input(ZGetGroupsWithWorkspaceParent)
-    .query(async (opts) => {
-      return await withTransaction((client) =>
-        getGroupsWithWorkspaceParent(client, {
-          workspace_id: opts.input.workspace_id,
-        })
-      );
-    }),
-  createGroupWithWorkspaceParent: t.procedure
-    .input(ZCreateGroupWithWorkspaceParent)
-    .mutation(async (opts) => {
-      return await withTransaction((client) =>
-        createGroupWithWorkspaceParent(client, {
-          workspace_id: opts.input.workspace_id,
-          name_: opts.input.name_,
-        })
-      );
-    }),
+  getGroupsWithWorkspaceParent: t.procedure.input(ZGetGroupsWithWorkspaceParent).query(async (opts) => {
+    return await withTransaction((client) =>
+      getGroupsWithWorkspaceParent(client, {
+        workspace_id: opts.input.workspace_id,
+      })
+    );
+  }),
+  createGroupWithWorkspaceParent: t.procedure.input(ZCreateGroupWithWorkspaceParent).mutation(async (opts) => {
+    return await withTransaction((client) =>
+      createGroupWithWorkspaceParent(client, {
+        workspace_id: opts.input.workspace_id,
+        name_: opts.input.name_,
+      })
+    );
+  }),
 
   getGroupData: t.procedure.input(ZGetGroupData).query(async (opts) => {
-    return await withTransaction(
-      async (client) => await getGroupData(client, { id: opts.input.id })
-    );
+    return await withTransaction(async (client) => await getGroupData(client, { id: opts.input.id }));
   }),
 });

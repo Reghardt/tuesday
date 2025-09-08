@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FC, type JSX } from "react";
 import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
+import { Cell } from "./Cell";
 
 const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
   const navigate = useNavigate();
@@ -67,10 +68,7 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
     );
   };
 
-  function createTable(
-    rows: typeof getGroupDataQuery.data,
-    columns: typeof getGroupColumnsQuery.data
-  ) {
+  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
     return (
       <div className="flex gap-2">
         <table>
@@ -78,24 +76,22 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
             <tr className="">
               {columns?.map((column) => {
                 return (
-                  <>
-                    <th key={column.id} className="text-left border  w-20">
-                      <div className="flex gap-2">
-                        <div className="p-1">{column.name_}</div>
-                        <button
-                          className="p-1 text-red-700 font-light hover:bg-red-300"
-                          onClick={() => {
-                            deleteColumnMutation.mutate({
-                              id: column.id,
-                              group_id: column.group_id,
-                            });
-                          }}
-                        >
-                          Delete Column
-                        </button>
-                      </div>
-                    </th>
-                  </>
+                  <th key={column.id} className="text-left border  w-20">
+                    <div className="flex gap-2">
+                      <div className="">{column.name_}</div>
+                      <button
+                        className=" text-red-700 font-light hover:bg-red-300"
+                        onClick={() => {
+                          deleteColumnMutation.mutate({
+                            id: column.id,
+                            group_id: column.group_id,
+                          });
+                        }}
+                      >
+                        Delete Column
+                      </button>
+                    </div>
+                  </th>
                 );
               })}
               <th>
@@ -112,39 +108,34 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
           <tbody>
             {rows?.map((row) => {
               return (
-                <>
-                  <tr key={row.id}>
-                    {row.cells.map((cell) => {
-                      console.log(cell.content);
-                      return (
-                        <td
-                          key={`${cell.group_column_id}_${cell.group_row_id}`}
-                          className="text-left border p-1"
-                        >
-                          <input defaultValue={cell.content.value} />
-                        </td>
-                      );
-                    })}
-
-                    {row.cells.length > 0 ? (
-                      <td className="">
-                        <button
-                          onClick={() =>
-                            deleteRowMutation.mutate({
-                              id: row.id,
-                              group_id: row.group_id,
-                            })
-                          }
-                          className="text-red-700 hover:bg-red-300 p-1 w-30"
-                        >
-                          Delete Row
-                        </button>
+                <tr key={row.id}>
+                  {row.cells.map((cell) => {
+                    console.log(cell.content);
+                    return (
+                      <td key={`${cell.group_column_id}_${cell.group_row_id}`} className="text-left border">
+                        <Cell cell={cell} />
                       </td>
-                    ) : (
-                      <></>
-                    )}
-                  </tr>
-                </>
+                    );
+                  })}
+
+                  {row.cells.length > 0 ? (
+                    <td className="">
+                      <button
+                        onClick={() =>
+                          deleteRowMutation.mutate({
+                            id: row.id,
+                            group_id: row.group_id,
+                          })
+                        }
+                        className="text-red-700 hover:bg-red-300 w-30"
+                      >
+                        Delete Row
+                      </button>
+                    </td>
+                  ) : (
+                    <></>
+                  )}
+                </tr>
               );
             })}
           </tbody>
