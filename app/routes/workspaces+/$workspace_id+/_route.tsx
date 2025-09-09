@@ -9,10 +9,8 @@ import { Outlet } from "react-router";
 import type { Route } from "./+types/_route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const workspace_id = z.coerce.number().parse(params.id);
-  const workspace = await withTransaction((client) =>
-    getWorkspace(client, { id: workspace_id })
-  );
+  const workspace_id = z.coerce.number().parse(params.workspace_id);
+  const workspace = await withTransaction((client) => getWorkspace(client, { id: workspace_id }));
   if (workspace === undefined) {
     throw Error("That Workspace Does not exist");
   }

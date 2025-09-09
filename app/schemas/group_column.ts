@@ -1,9 +1,5 @@
 import z from "zod";
-import {
-  getRowId,
-  withDbErrorHandling,
-  withTransaction,
-} from "~/utils/pool.server";
+import { getRowId, withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 import { getGroupRows } from "./group_rows";
 import { createGroupCell } from "./group_cells";
@@ -38,10 +34,7 @@ const getGroupColumnsNextPos = withDbErrorHandling(
       [values.group_id]
     );
 
-    const parsedRes = z
-      .object({ next_pos: z.number() })
-      .array()
-      .parse(res.rows)[0];
+    const parsedRes = z.object({ next_pos: z.number() }).array().parse(res.rows)[0];
 
     if (parsedRes === undefined) {
       throw new Error("index 0 undefined");
@@ -162,6 +155,14 @@ export const createGroupColumn = withDbErrorHandling(
           content: dateColumnTypeCodec.encode(null),
         });
       }
+    } else if (values.column_type === ZEGroupColumnTypes.enum.status) {
+      for (let i = 0; i < group_rows.length; i++) {
+        await createGroupCell(client, {
+          group_row_id: group_rows[i].id,
+          group_column_id: group_column_id,
+          content: { status_id: null },
+        });
+      }
     }
   }
 );
@@ -170,10 +171,7 @@ const ZDeleteGroupColumn = ZGroupColumn.pick({ id: true, group_id: true });
 export const deleteGroupColumn = withDbErrorHandling(
   "deleteGroupColumn",
   async (client, values: z.infer<typeof ZDeleteGroupColumn>) => {
-    await client.query(
-      "DELETE FROM group_columns WHERE id = $1 AND group_id = $2",
-      [values.id, values.group_id]
-    );
+    await client.query("DELETE FROM group_columns WHERE id = $1 AND group_id = $2", [values.id, values.group_id]);
   }
 );
 
@@ -182,25 +180,20 @@ const setGroupColumnName = withDbErrorHandling(
   "setGroupColumnName",
   async (client, values: z.infer<typeof ZSetGroupColumnName>) => {
     console.log("test");
-    await client.query("UPDATE group_columns SET name_ = $1 WHERE id = $2", [
-      values.name_,
-      values.id,
-    ]);
+    await client.query("UPDATE group_columns SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
   }
 );
 
 export const groupColumnsRouter = t.router({
-  createGroupColumn: t.procedure
-    .input(ZCreateGroupColumn)
-    .mutation(async (opts) => {
-      await withTransaction((client) =>
-        createGroupColumn(client, {
-          group_id: opts.input.group_id,
-          name_: opts.input.name_,
-          column_type: opts.input.column_type,
-        })
-      );
-    }),
+  createGroupColumn: t.procedure.input(ZCreateGroupColumn).mutation(async (opts) => {
+    await withTransaction((client) =>
+      createGroupColumn(client, {
+        group_id: opts.input.group_id,
+        name_: opts.input.name_,
+        column_type: opts.input.column_type,
+      })
+    );
+  }),
   getGroupColumns: t.procedure.input(ZGetGroupColumns).query(async (opts) => {
     return await withTransaction((client) =>
       getGroupColumns(client, {
@@ -208,24 +201,20 @@ export const groupColumnsRouter = t.router({
       })
     );
   }),
-  deleteGroupColumns: t.procedure
-    .input(ZDeleteGroupColumn)
-    .mutation(async (opts) => {
-      return await withTransaction((client) =>
-        deleteGroupColumn(client, {
-          id: opts.input.id,
-          group_id: opts.input.group_id,
-        })
-      );
-    }),
-  setGroupColumnName: t.procedure
-    .input(ZSetGroupColumnName)
-    .mutation(async (opts) => {
-      return await withTransaction((client) =>
-        setGroupColumnName(client, {
-          id: opts.input.id,
-          name_: opts.input.name_,
-        })
-      );
-    }),
+  deleteGroupColumns: t.procedure.input(ZDeleteGroupColumn).mutation(async (opts) => {
+    return await withTransaction((client) =>
+      deleteGroupColumn(client, {
+        id: opts.input.id,
+        group_id: opts.input.group_id,
+      })
+    );
+  }),
+  setGroupColumnName: t.procedure.input(ZSetGroupColumnName).mutation(async (opts) => {
+    return await withTransaction((client) =>
+      setGroupColumnName(client, {
+        id: opts.input.id,
+        name_: opts.input.name_,
+      })
+    );
+  }),
 });
