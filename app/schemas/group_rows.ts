@@ -7,7 +7,12 @@ import {
 import { t } from "~/utils/trpc/trpc.server";
 import { getGroupColumns } from "./group_column";
 import { createGroupCell } from "./group_cells";
-import { ZEGroupColumnTypes } from "~/enums/groupColumnTypes";
+import {
+  dateColumnTypeCodec,
+  numberColumnTypeCodec,
+  textColumnTypeCodec,
+  ZEGroupColumnTypes,
+} from "~/enums/groupColumnTypes";
 
 export const ZGroupRow = z.object({
   id: z.number(),
@@ -70,7 +75,7 @@ const createGroupRow = withDbErrorHandling(
         await createGroupCell(client, {
           group_row_id: group_row_id,
           group_column_id: group_columns[i].id,
-          content: { value: "" },
+          content: textColumnTypeCodec.encode(""),
         });
       } else if (
         group_columns[i].column_type === ZEGroupColumnTypes.enum.number_
@@ -80,7 +85,15 @@ const createGroupRow = withDbErrorHandling(
         await createGroupCell(client, {
           group_row_id: group_row_id,
           group_column_id: group_columns[i].id,
-          content: { value: 0 },
+          content: numberColumnTypeCodec.encode(0),
+        });
+      } else if (
+        group_columns[i].column_type === ZEGroupColumnTypes.enum.date
+      ) {
+        await createGroupCell(client, {
+          group_row_id: group_row_id,
+          group_column_id: group_columns[i].id,
+          content: dateColumnTypeCodec.encode(null),
         });
       }
     }

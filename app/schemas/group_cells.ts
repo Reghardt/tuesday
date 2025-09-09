@@ -1,8 +1,6 @@
 import z from "zod";
 import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
-import { getGroupColumn } from "./group_column";
 import { t } from "~/utils/trpc/trpc.server";
-import { textColumnTypeCodec, ZEGroupColumnTypes } from "~/enums/groupColumnTypes";
 
 export const ZGroupCell = z.object({
   group_row_id: z.number(),
@@ -12,23 +10,24 @@ export const ZGroupCell = z.object({
 
 export const createGroupCell = withDbErrorHandling(
   "createGroupCell",
-  async function createWorkspaceGroupColumnItem(client, values: z.infer<typeof ZGroupCell>) {
-    await client.query("INSERT INTO group_cells(group_row_id, group_column_id, content) VALUES($1, $2, $3)", [
-      values.group_row_id,
-      values.group_column_id,
-      values.content,
-    ]);
+  async function createWorkspaceGroupColumnItem(
+    client,
+    values: z.infer<typeof ZGroupCell>
+  ) {
+    await client.query(
+      "INSERT INTO group_cells(group_row_id, group_column_id, content) VALUES($1, $2, $3)",
+      [values.group_row_id, values.group_column_id, values.content]
+    );
   }
 );
 
 const setGroupCellContent = withDbErrorHandling(
   "setGroupCellContent",
   async (client, values: z.infer<typeof ZGroupCell>) => {
-    await client.query("UPDATE group_cells SET content = $1 WHERE group_row_id = $2 AND group_column_id = $3", [
-      values.content,
-      values.group_row_id,
-      values.group_column_id,
-    ]);
+    await client.query(
+      "UPDATE group_cells SET content = $1 WHERE group_row_id = $2 AND group_column_id = $3",
+      [values.content, values.group_row_id, values.group_column_id]
+    );
   }
 );
 

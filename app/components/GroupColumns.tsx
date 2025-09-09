@@ -68,7 +68,10 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
     );
   };
 
-  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
+  function createTable(
+    rows: typeof getGroupDataQuery.data,
+    columns: typeof getGroupColumnsQuery.data
+  ) {
     return (
       <div className="flex gap-2">
         <table>
@@ -76,7 +79,7 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
             <tr className="">
               {columns?.map((column) => {
                 return (
-                  <th key={column.id} className="text-left border  w-20">
+                  <th key={column.id} className="text-left border w-60">
                     <div className="flex gap-2">
                       <div className="">{column.name_}</div>
                       <button
@@ -112,7 +115,10 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
                   {row.cells.map((cell) => {
                     console.log(cell.content);
                     return (
-                      <td key={`${cell.group_column_id}_${cell.group_row_id}`} className="text-left border">
+                      <td
+                        key={`${cell.group_column_id}_${cell.group_row_id}`}
+                        className="text-left border"
+                      >
                         <Cell cell={cell} />
                       </td>
                     );
@@ -150,17 +156,21 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
 
       {createTable(getGroupDataQuery.data, getGroupColumnsQuery.data)}
 
-      <div>
-        <button
-          onClick={() => {
-            createGroupRowMutation.mutate({
-              group_id: group_id,
-            });
-          }}
-        >
-          Create Row
-        </button>
-      </div>
+      {(getGroupColumnsQuery.data?.length ?? 0) > 0 ? (
+        <div>
+          <button
+            onClick={() => {
+              createGroupRowMutation.mutate({
+                group_id: group_id,
+              });
+            }}
+          >
+            Create Row
+          </button>
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

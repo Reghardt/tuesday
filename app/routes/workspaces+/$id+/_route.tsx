@@ -37,6 +37,8 @@ export default function Component({ loaderData }: Route.ComponentProps) {
         queryClient.invalidateQueries({
           queryKey: trpc.groups.getGroupsWithWorkspaceParent.queryKey(),
         });
+
+        setWorkspaceGroupName("");
       },
     })
   );
@@ -45,7 +47,19 @@ export default function Component({ loaderData }: Route.ComponentProps) {
       <Outlet />
       <div className="flex flex-col gap-2">
         <div>Workspace</div>
-        <div>
+
+        <div className="flex flex-col gap-2">
+          {getGroupsQuery.data?.map((group) => {
+            return (
+              <div key={group.id}>
+                <div>{group.name_}</div>
+                <WorkspaceGroupColumns group_id={group.id} />
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-2">
           <input
             className="border border-white"
             type="text"
@@ -62,16 +76,6 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           >
             Create Group
           </button>
-        </div>
-        <div className="flex flex-col gap-2">
-          {getGroupsQuery.data?.map((group) => {
-            return (
-              <div key={group.id}>
-                <div>{group.name_}</div>
-                <WorkspaceGroupColumns group_id={group.id} />
-              </div>
-            );
-          })}
         </div>
       </div>
     </>

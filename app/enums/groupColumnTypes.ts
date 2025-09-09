@@ -37,3 +37,14 @@ export const numberColumnTypeCodec = {
     return z.object({ value: z.number() }).parse(content).value;
   },
 };
+
+export const dateColumnTypeCodec = {
+  encode: (value: string | null) => {
+    return {
+      value,
+    };
+  },
+  decode: (content: JSONType) => {
+    return z.object({ value: z.string().nullable() }).parse(content).value;
+  },
+};

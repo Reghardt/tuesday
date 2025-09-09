@@ -41,8 +41,7 @@ CREATE TABLE IF NOT EXISTS group_columns(
     column_type INTEGER NOT NULL,
     type_properties JSONB NOT NULL,
     pos INTEGER NOT NULL,
-    UNIQUE(group_id, pos), -- prevents duplicate positions
-    UNIQUE(group_id, name_) -- prevents duplicate column names
+    UNIQUE(group_id, pos) -- prevents duplicate positions
 );
 
 CREATE TABLE IF NOT EXISTS group_rows(
@@ -59,16 +58,6 @@ FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE;
 ALTER TABLE groups 
 ADD CONSTRAINT fk_groups_parent_row 
 FOREIGN KEY (parent_group_row_id) REFERENCES group_rows(id) ON DELETE CASCADE;
-
--- ALTER TABLE groups 
--- ADD CONSTRAINT unique_pos_workspace 
--- UNIQUE (workspace_id, pos) 
--- WHERE parent_row_id IS NULL;
-
--- ALTER TABLE groups 
--- ADD CONSTRAINT unique_pos_parent 
--- UNIQUE (parent_row_id, pos) 
--- WHERE workspace_id IS NOT NULL;
 
 CREATE UNIQUE INDEX CONCURRENTLY idx_groups_workspace_pos 
 ON groups (workspace_id, pos) 
