@@ -3,10 +3,10 @@ import { useState, type FC, type JSX } from "react";
 import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
 import { Cell } from "./Cell";
+import ColumnHeading from "./ColumnHeading";
 
 const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
   const navigate = useNavigate();
-  const [workspaceGroupColumnName, setWorkspaceGroupColumnName] = useState("");
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -43,31 +43,6 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
     })
   );
 
-  const deleteColumnMutation = useMutation(
-    trpc.groupColumns.deleteGroupColumns.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.groupColumns.getGroupColumns.queryKey(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: trpc.groups.getGroupData.queryKey(),
-        });
-      },
-    })
-  );
-
-  const TextComponent: FC<{
-    textItem: { id: number; content: { value: string } };
-  }> = (textItem) => {
-    const [text, setText] = useState(textItem.textItem.content.value);
-    return (
-      <div className="flex">
-        <input value={text} onChange={(e) => setText(e.target.value)}></input>
-        <button>OK</button>
-      </div>
-    );
-  };
-
   function createTable(
     rows: typeof getGroupDataQuery.data,
     columns: typeof getGroupColumnsQuery.data
@@ -80,20 +55,7 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
               {columns?.map((column) => {
                 return (
                   <th key={column.id} className="text-left border w-60">
-                    <div className="flex gap-2">
-                      <div className="">{column.name_}</div>
-                      <button
-                        className=" text-red-700 font-light hover:bg-red-300"
-                        onClick={() => {
-                          deleteColumnMutation.mutate({
-                            id: column.id,
-                            group_id: column.group_id,
-                          });
-                        }}
-                      >
-                        Delete Column
-                      </button>
-                    </div>
+                    <ColumnHeading column={column} />
                   </th>
                 );
               })}
@@ -159,6 +121,7 @@ const WorkspaceGroupColumns: FC<{ group_id: number }> = ({ group_id }) => {
       {(getGroupColumnsQuery.data?.length ?? 0) > 0 ? (
         <div>
           <button
+            className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
             onClick={() => {
               createGroupRowMutation.mutate({
                 group_id: group_id,

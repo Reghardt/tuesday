@@ -177,6 +177,18 @@ export const deleteGroupColumn = withDbErrorHandling(
   }
 );
 
+const ZSetGroupColumnName = ZGroupColumn.pick({ id: true, name_: true });
+const setGroupColumnName = withDbErrorHandling(
+  "setGroupColumnName",
+  async (client, values: z.infer<typeof ZSetGroupColumnName>) => {
+    console.log("test");
+    await client.query("UPDATE group_columns SET name_ = $1 WHERE id = $2", [
+      values.name_,
+      values.id,
+    ]);
+  }
+);
+
 export const groupColumnsRouter = t.router({
   createGroupColumn: t.procedure
     .input(ZCreateGroupColumn)
@@ -203,6 +215,16 @@ export const groupColumnsRouter = t.router({
         deleteGroupColumn(client, {
           id: opts.input.id,
           group_id: opts.input.group_id,
+        })
+      );
+    }),
+  setGroupColumnName: t.procedure
+    .input(ZSetGroupColumnName)
+    .mutation(async (opts) => {
+      return await withTransaction((client) =>
+        setGroupColumnName(client, {
+          id: opts.input.id,
+          name_: opts.input.name_,
         })
       );
     }),

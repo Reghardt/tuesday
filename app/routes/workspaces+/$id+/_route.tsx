@@ -59,13 +59,14 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           })}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex">
           <input
             className="border border-white"
             type="text"
             onChange={(e) => setWorkspaceGroupName(e.target.value)}
           ></input>
           <button
+            className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
             type="button"
             onClick={() =>
               createWorkspaceMutation.mutate({
