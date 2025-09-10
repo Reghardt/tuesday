@@ -31,6 +31,22 @@ const setGroupCellContent = withDbErrorHandling(
   }
 );
 
+const ZGetGroupCell = ZGroupCell.pick({
+  group_column_id: true,
+  group_row_id: true,
+});
+const getGroupCell = withDbErrorHandling(
+  "getGroupCellContent",
+  async (client, values: z.infer<typeof ZGetGroupCell>) => {
+    const res = await client.query(
+      "SELECT * FROM group_cells WHERE group_column_id = $1 AND group_row_id = $2",
+      [values.group_column_id, values.group_row_id]
+    );
+
+    return ZGroupCell.array().parse(res.rows)[0];
+  }
+);
+
 export const groupCellsRouter = t.router({
   setGroupCellContent: t.procedure.input(ZGroupCell).mutation(async (opts) => {
     await withTransaction(async (client) => {
@@ -40,5 +56,13 @@ export const groupCellsRouter = t.router({
         content: opts.input.content,
       });
     });
+  }),
+  getGroupCell: t.procedure.input(ZGetGroupCell).query(async (opts) => {
+    return await withTransaction(async (client) =>
+      getGroupCell(client, {
+        group_row_id: opts.input.group_row_id,
+        group_column_id: opts.input.group_column_id,
+      })
+    );
   }),
 });

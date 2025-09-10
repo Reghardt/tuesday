@@ -10,14 +10,32 @@ export default function Component({ params }: Route.ComponentProps) {
   const queryClient = useQueryClient();
 
   const getWorkspaceStatusesQuery = useQuery(
-    trpc.workspaceStatuses.getWorkspaceStatuses.queryOptions({ workspace_id: Number(params.workspace_id) })
+    trpc.workspaceStatuses.getWorkspaceStatuses.queryOptions({
+      workspace_id: Number(params.workspace_id),
+    })
   );
 
   const createWorkspaceStatusMutation = useMutation(
     trpc.workspaceStatuses.createWorkspaceStatus.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceStatuses.getWorkspaceStatuses.queryKey(),
+          queryKey: trpc.workspaceStatuses.getWorkspaceStatuses.queryKey({
+            workspace_id: Number(params.workspace_id),
+          }),
+        });
+      },
+    })
+  );
+
+  const setGroupCellContentMutation = useMutation(
+    trpc.groupCells.setGroupCellContent.mutationOptions({
+      onSuccess: () => {
+        navigate(-1);
+        queryClient.invalidateQueries({
+          queryKey: trpc.groupCells.getGroupCell.queryKey({
+            group_row_id: Number(params.group_row_id),
+            group_column_id: Number(params.group_column_id),
+          }),
         });
       },
     })
@@ -36,8 +54,19 @@ export default function Component({ params }: Route.ComponentProps) {
           <div>Status</div>
 
           {getWorkspaceStatusesQuery.data?.map((status) => {
+            console.log(status);
             return (
-              <button className={`w-full`} style={{ background: status.color }}>
+              <button
+                onClick={() => {
+                  setGroupCellContentMutation.mutate({
+                    group_row_id: Number(params.group_row_id),
+                    group_column_id: Number(params.group_column_id),
+                    content: { status_id: status.id },
+                  });
+                }}
+                className={`w-full`}
+                style={{ background: status.color }}
+              >
                 {status.name_}
               </button>
             );
@@ -55,7 +84,12 @@ export default function Component({ params }: Route.ComponentProps) {
             </div>
             <div className="flex flex-col">
               <label>Color</label>
-              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className=" w-full h-10" />
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className=" w-full h-10"
+              />
             </div>
 
             <button

@@ -10,7 +10,9 @@ import type { Route } from "./+types/_route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const workspace_id = z.coerce.number().parse(params.workspace_id);
-  const workspace = await withTransaction((client) => getWorkspace(client, { id: workspace_id }));
+  const workspace = await withTransaction((client) =>
+    getWorkspace(client, { id: workspace_id })
+  );
   if (workspace === undefined) {
     throw Error("That Workspace Does not exist");
   }
@@ -51,7 +53,10 @@ export default function Component({ loaderData }: Route.ComponentProps) {
             return (
               <div key={group.id}>
                 <div>{group.name_}</div>
-                <WorkspaceGroupColumns group_id={group.id} />
+                <WorkspaceGroupColumns
+                  group_id={group.id}
+                  workspace_id={loaderData.workspace_id}
+                />
               </div>
             );
           })}
@@ -61,6 +66,7 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           <input
             className="border border-white"
             type="text"
+            value={workspaceGroupName}
             onChange={(e) => setWorkspaceGroupName(e.target.value)}
           ></input>
           <button
