@@ -163,6 +163,14 @@ export const createGroupColumn = withDbErrorHandling(
           content: { status_id: null },
         });
       }
+    } else if (values.column_type === ZEGroupColumnTypes.enum.priority) {
+      for (let i = 0; i < group_rows.length; i++) {
+        await createGroupCell(client, {
+          group_row_id: group_rows[i].id,
+          group_column_id: group_column_id,
+          content: { priority_id: null },
+        });
+      }
     }
   }
 );

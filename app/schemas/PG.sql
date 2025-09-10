@@ -14,6 +14,7 @@ DROP TABLE IF EXISTS group_rows;
 DROP TABLE IF EXISTS group_columns;
 DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS workspace_statuses;
+DROP TABLE IF EXISTS workspace_priorities;
 DROP TABLE IF EXISTS workspaces;
 
 CREATE TABLE IF NOT EXISTS workspaces(
@@ -22,6 +23,13 @@ CREATE TABLE IF NOT EXISTS workspaces(
 );
 
 CREATE TABLE IF NOT EXISTS workspace_statuses(
+    id SERIAL PRIMARY KEY,
+    workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    name_ TEXT NOT NULL,
+    color TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS workspace_priorities(
     id SERIAL PRIMARY KEY,
     workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name_ TEXT NOT NULL,

@@ -86,6 +86,12 @@ const createGroupRow = withDbErrorHandling(
           group_column_id: group_columns[i].id,
           content: { status_id: null },
         });
+      } else if (group_columns[i].column_type === ZEGroupColumnTypes.enum.priority) {
+        await createGroupCell(client, {
+          group_row_id: group_row_id,
+          group_column_id: group_columns[i].id,
+          content: { priority_id: null },
+        });
       }
     }
   }

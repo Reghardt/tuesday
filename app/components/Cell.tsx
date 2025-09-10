@@ -11,13 +11,9 @@ import {
 import type { ZGroupCellExtended } from "~/schemas/groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.groupCells.setGroupCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
 
   return (
     <input
@@ -35,13 +31,9 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.groupCells.setGroupCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
 
   return (
     <input
@@ -59,13 +51,9 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.groupCells.setGroupCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
 
   return (
     <input
@@ -108,10 +96,7 @@ const StatusCell: FC<{
 
   if (getCellQuery.data?.content?.status_id !== null) {
     for (let i = 0; i < (getWorkspaceStatusesQuery.data?.length ?? 0); i++) {
-      if (
-        getCellQuery.data?.content?.status_id ===
-        getWorkspaceStatusesQuery.data![i].id
-      ) {
+      if (getCellQuery.data?.content?.status_id === getWorkspaceStatusesQuery.data![i].id) {
         text = getWorkspaceStatusesQuery.data![i].name_;
         color = getWorkspaceStatusesQuery.data![i].color;
       }
@@ -122,6 +107,52 @@ const StatusCell: FC<{
     <button
       onClick={() => {
         navigate(`setCellStatus/${cell.group_column_id}/${cell.group_row_id}`);
+      }}
+      className="w-full h-full p-1"
+      style={{ background: color }}
+    >
+      {text}
+    </button>
+  );
+};
+
+const PriorityCell: FC<{
+  cell: z.infer<typeof ZGroupCellExtended>;
+  workspace_id: number;
+}> = ({ cell, workspace_id }) => {
+  console.log(cell);
+  const trpc = useTRPC();
+  const navigate = useNavigate();
+
+  const getCellQuery = useQuery({
+    ...trpc.groupCells.getGroupCell.queryOptions({
+      group_column_id: cell.group_column_id,
+      group_row_id: cell.group_row_id,
+    }),
+    initialData: cell,
+    staleTime: 0,
+  });
+
+  const getWorkspacePrioritiesQuery = useQuery(
+    trpc.workspacePriorities.getWorkspacePriorities.queryOptions({ workspace_id })
+  );
+
+  let text = "No Status";
+  let color = "#4a5565";
+
+  if (getCellQuery.data?.content?.priority_id !== null) {
+    for (let i = 0; i < (getWorkspacePrioritiesQuery.data?.length ?? 0); i++) {
+      if (getCellQuery.data?.content?.priority_id === getWorkspacePrioritiesQuery.data![i].id) {
+        text = getWorkspacePrioritiesQuery.data![i].name_;
+        color = getWorkspacePrioritiesQuery.data![i].color;
+      }
+    }
+  }
+
+  return (
+    <button
+      onClick={() => {
+        navigate(`setCellPriority/${cell.group_column_id}/${cell.group_row_id}`);
       }}
       className="w-full h-full p-1"
       style={{ background: color }}
@@ -143,6 +174,8 @@ export const Cell: FC<{
     return <DateCell cell={cell} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.status) {
     return <StatusCell cell={cell} workspace_id={workspace_id} />;
+  } else if (cell.column_type === ZEGroupColumnTypes.enum.priority) {
+    return <PriorityCell cell={cell} workspace_id={workspace_id} />;
   } else {
     return <div>UNKNOWN TYPE</div>;
   }
