@@ -1,10 +1,10 @@
-0   Text
-1   Number
-2   Date
+0   Text                Done
+1   Number              Done
+2   Date                Done
 3   Time 
-4   Status (enum) 
-5   Priority (enum)  
-6   People              {user_id: 1234}
+4   Status (enum)       Done
+5   Priority (enum)     Done
+6   People              
 7   File
 8   Timeline
 9   Tags

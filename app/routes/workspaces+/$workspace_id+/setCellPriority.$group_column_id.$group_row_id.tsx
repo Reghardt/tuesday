@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
 import { useState } from "react";
 import type { Route } from "./+types/setCellPriority.$group_column_id.$group_row_id";
+import { priorityColumnTypeCodec } from "~/enums/groupColumnTypes";
 
 export default function Component({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   setGroupCellContentMutation.mutate({
                     group_row_id: Number(params.group_row_id),
                     group_column_id: Number(params.group_column_id),
-                    content: { priority_id: priority.id },
+                    content: priorityColumnTypeCodec.encode(priority.id),
                   });
                 }}
                 className={`w-full`}

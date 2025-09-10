@@ -48,3 +48,25 @@ export const dateColumnTypeCodec = {
     return z.object({ value: z.string().nullable() }).parse(content).value;
   },
 };
+
+export const statusColumnTypeCodec = {
+  encode: (status_id: number | null) => {
+    return {
+      status_id,
+    };
+  },
+  decode: (content: JSONType) => {
+    return z.object({ status_id: z.number().nullable() }).parse(content).status_id;
+  },
+};
+
+export const priorityColumnTypeCodec = {
+  encode: (priority_id: number | null) => {
+    return {
+      priority_id,
+    };
+  },
+  decode: (content: JSONType) => {
+    return z.object({ priority_id: z.number().nullable() }).parse(content).priority_id;
+  },
+};

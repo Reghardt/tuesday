@@ -6,6 +6,8 @@ import { createGroupCell } from "./group_cells";
 import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
+  priorityColumnTypeCodec,
+  statusColumnTypeCodec,
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
@@ -160,7 +162,7 @@ export const createGroupColumn = withDbErrorHandling(
         await createGroupCell(client, {
           group_row_id: group_rows[i].id,
           group_column_id: group_column_id,
-          content: { status_id: null },
+          content: statusColumnTypeCodec.encode(null),
         });
       }
     } else if (values.column_type === ZEGroupColumnTypes.enum.priority) {
@@ -168,7 +170,7 @@ export const createGroupColumn = withDbErrorHandling(
         await createGroupCell(client, {
           group_row_id: group_rows[i].id,
           group_column_id: group_column_id,
-          content: { priority_id: null },
+          content: priorityColumnTypeCodec.encode(null),
         });
       }
     }

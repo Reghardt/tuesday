@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
 import type { Route } from "./+types/setCellStatus.$group_column_id.$group_row_id";
 import { useState } from "react";
+import { statusColumnTypeCodec } from "~/enums/groupColumnTypes";
 
 export default function Component({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
@@ -61,7 +62,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   setGroupCellContentMutation.mutate({
                     group_row_id: Number(params.group_row_id),
                     group_column_id: Number(params.group_column_id),
-                    content: { status_id: status.id },
+                    content: statusColumnTypeCodec.encode(status.id),
                   });
                 }}
                 className={`w-full`}

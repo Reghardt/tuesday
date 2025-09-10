@@ -5,6 +5,8 @@ import type { z } from "zod";
 import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
+  priorityColumnTypeCodec,
+  statusColumnTypeCodec,
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
@@ -94,9 +96,11 @@ const StatusCell: FC<{
   let text = "No Status";
   let color = "#4a5565";
 
-  if (getCellQuery.data?.content?.status_id !== null) {
+  const status_id = statusColumnTypeCodec.decode(getCellQuery.data?.content);
+
+  if (status_id !== null) {
     for (let i = 0; i < (getWorkspaceStatusesQuery.data?.length ?? 0); i++) {
-      if (getCellQuery.data?.content?.status_id === getWorkspaceStatusesQuery.data![i].id) {
+      if (status_id === getWorkspaceStatusesQuery.data![i].id) {
         text = getWorkspaceStatusesQuery.data![i].name_;
         color = getWorkspaceStatusesQuery.data![i].color;
       }
@@ -140,9 +144,11 @@ const PriorityCell: FC<{
   let text = "No Status";
   let color = "#4a5565";
 
-  if (getCellQuery.data?.content?.priority_id !== null) {
+  const priority_id = priorityColumnTypeCodec.decode(getCellQuery.data?.content);
+
+  if (priority_id !== null) {
     for (let i = 0; i < (getWorkspacePrioritiesQuery.data?.length ?? 0); i++) {
-      if (getCellQuery.data?.content?.priority_id === getWorkspacePrioritiesQuery.data![i].id) {
+      if (priority_id === getWorkspacePrioritiesQuery.data![i].id) {
         text = getWorkspacePrioritiesQuery.data![i].name_;
         color = getWorkspacePrioritiesQuery.data![i].color;
       }
