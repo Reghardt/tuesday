@@ -124,7 +124,6 @@ const PriorityCell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
   workspace_id: number;
 }> = ({ cell, workspace_id }) => {
-  console.log(cell);
   const trpc = useTRPC();
   const navigate = useNavigate();
 
@@ -168,6 +167,60 @@ const PriorityCell: FC<{
   );
 };
 
+const PeopleCell: FC<{
+  cell: z.infer<typeof ZGroupCellExtended>;
+  workspace_id: number;
+}> = ({ cell, workspace_id }) => {
+  const trpc = useTRPC();
+  const navigate = useNavigate();
+
+  const getCellQuery = useQuery({
+    ...trpc.groupCells.getGroupCell.queryOptions({
+      group_column_id: cell.group_column_id,
+      group_row_id: cell.group_row_id,
+    }),
+    initialData: cell,
+    staleTime: 0,
+  });
+
+  const getUsersQuery = useQuery(trpc.users.getUsers.queryOptions());
+
+  const user_names: string[] = [];
+
+  for (let i = 0; i < getCellQuery.data.content.user_ids.length; i++) {
+    const user_id = getCellQuery.data.content.user_ids[i];
+    console.log(user_id);
+    for (let j = 0; j < (getUsersQuery.data?.length ?? 0); j++) {
+      const user = getUsersQuery.data![j];
+      if (user.id === user_id) {
+        user_names.push(user.name);
+      }
+    }
+  }
+
+  console.log();
+
+  return (
+    <button
+      onClick={() => {
+        navigate(`setCellPeople/${cell.group_column_id}/${cell.group_row_id}`);
+      }}
+      className="w-full h-full p-1"
+    >
+      {user_names.length ? (
+        <>
+          {" "}
+          {user_names.map((user) => {
+            return <div key={user}>{user}</div>;
+          })}
+        </>
+      ) : (
+        <>?</>
+      )}
+    </button>
+  );
+};
+
 export const Cell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
   workspace_id: number;
@@ -182,6 +235,8 @@ export const Cell: FC<{
     return <StatusCell cell={cell} workspace_id={workspace_id} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.priority) {
     return <PriorityCell cell={cell} workspace_id={workspace_id} />;
+  } else if (cell.column_type === ZEGroupColumnTypes.enum.people) {
+    return <PeopleCell cell={cell} workspace_id={workspace_id} />;
   } else {
     return <div>UNKNOWN TYPE</div>;
   }

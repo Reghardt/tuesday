@@ -13,3 +13,11 @@ export const auth = betterAuth({
     },
   },
 });
+
+export async function getSession(request: Request) {
+  return await auth.api.getSession({ headers: request.headers });
+}
+
+export async function getSessionUser(request: Request) {
+  return (await auth.api.getSession({ headers: request.headers }))?.user ?? null;
+}

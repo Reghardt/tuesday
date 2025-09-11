@@ -94,6 +94,12 @@ const createGroupRow = withDbErrorHandling(
           group_column_id: group_columns[i].id,
           content: priorityColumnTypeCodec.encode(null),
         });
+      } else if (group_columns[i].column_type === ZEGroupColumnTypes.enum.people) {
+        await createGroupCell(client, {
+          group_row_id: group_row_id,
+          group_column_id: group_columns[i].id,
+          content: { user_ids: [] },
+        });
       }
     }
   }

@@ -173,6 +173,14 @@ export const createGroupColumn = withDbErrorHandling(
           content: priorityColumnTypeCodec.encode(null),
         });
       }
+    } else if (values.column_type === ZEGroupColumnTypes.enum.people) {
+      for (let i = 0; i < group_rows.length; i++) {
+        await createGroupCell(client, {
+          group_row_id: group_rows[i].id,
+          group_column_id: group_column_id,
+          content: { user_ids: [] },
+        });
+      }
     }
   }
 );

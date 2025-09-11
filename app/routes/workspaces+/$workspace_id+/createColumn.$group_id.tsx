@@ -93,7 +93,18 @@ export default function Component({ params }: Route.ComponentProps) {
             >
               Priority
             </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">People</button>
+            <button
+              onClick={() => {
+                createGroupColumnMutation.mutate({
+                  name_: "People",
+                  group_id: Number(params.group_id),
+                  column_type: ZEGroupColumnTypes.enum.people,
+                });
+              }}
+              className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
+            >
+              People
+            </button>
             <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">File</button>
             <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Timeline</button>
             <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Tags</button>

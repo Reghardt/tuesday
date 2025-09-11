@@ -1,15 +1,19 @@
 import { signIn } from "~/utils/auth-client";
 import type { Route } from "./+types/_index";
-import { auth } from "~/utils/auth.server";
+import { getSessionUser } from "~/utils/auth.server";
+import { pool } from "~/utils/pool.server";
+import { redirect } from "react-router";
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const cookie = request.headers.get("Cookie");
-  // auth.api.getSession()
-  console.log(cookie);
+  const client = await pool.connect();
 
-  const session = await auth.api.getSession({ headers: request.headers });
+  const res = await client.query("SELECT * FROM account");
+  console.log(res.rows);
 
-  console.log(session?.session, session?.user);
+  const sessionUser = await getSessionUser(request);
+  if (sessionUser) {
+    throw redirect("/workspaces");
+  }
   return null;
 }
 

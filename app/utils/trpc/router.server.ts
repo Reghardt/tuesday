@@ -6,6 +6,7 @@ import { groupRowsRouter } from "~/schemas/group_rows";
 import { groupCellsRouter } from "~/schemas/group_cells";
 import { workspaceStatusesRouter } from "~/schemas/workspace_statuses";
 import { workspacePrioritiesRouter } from "~/schemas/workspace_priorities";
+import { usersRouter } from "~/schemas/users";
 
 export const appRouter = t.router({
   workspaces: workspacesRouter,
@@ -15,6 +16,7 @@ export const appRouter = t.router({
   groupCells: groupCellsRouter,
   workspaceStatuses: workspaceStatusesRouter,
   workspacePriorities: workspacePrioritiesRouter,
+  users: usersRouter,
 });
 
 // Export only the type of a router!
