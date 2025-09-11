@@ -7,7 +7,7 @@ invariant(process.env.PG_USER, "PG_USER undefined");
 invariant(process.env.PG_PASSWORD, "PG_PASSWORD undefined");
 invariant(process.env.PG_DATABASE, "PG_DATABASE undefined");
 
-const pool = new Pool({
+export const pool = new Pool({
   host: process.env.PG_HOST,
   user: process.env.PG_USER,
   password: process.env.PG_PASSWORD,
@@ -19,9 +19,7 @@ const pool = new Pool({
   maxLifetimeSeconds: 600,
 });
 
-export async function withTransaction<T>(
-  callback: (pool: PoolClient) => Promise<T>
-): Promise<T> {
+export async function withTransaction<T>(callback: (pool: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
