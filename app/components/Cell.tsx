@@ -5,6 +5,7 @@ import type { z } from "zod";
 import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
+  peopleColumnTypeCodec,
   priorityColumnTypeCodec,
   statusColumnTypeCodec,
   textColumnTypeCodec,
@@ -13,9 +14,13 @@ import {
 import type { ZGroupCellExtended } from "~/schemas/groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.groupCells.setGroupCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -33,9 +38,13 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) =>
   );
 };
 
-const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.groupCells.setGroupCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -53,9 +62,13 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) 
   );
 };
 
-const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.groupCells.setGroupCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -137,13 +150,17 @@ const PriorityCell: FC<{
   });
 
   const getWorkspacePrioritiesQuery = useQuery(
-    trpc.workspacePriorities.getWorkspacePriorities.queryOptions({ workspace_id })
+    trpc.workspacePriorities.getWorkspacePriorities.queryOptions({
+      workspace_id,
+    })
   );
 
   let text = "No Status";
   let color = "#4a5565";
 
-  const priority_id = priorityColumnTypeCodec.decode(getCellQuery.data?.content);
+  const priority_id = priorityColumnTypeCodec.decode(
+    getCellQuery.data?.content
+  );
 
   if (priority_id !== null) {
     for (let i = 0; i < (getWorkspacePrioritiesQuery.data?.length ?? 0); i++) {
@@ -157,7 +174,9 @@ const PriorityCell: FC<{
   return (
     <button
       onClick={() => {
-        navigate(`setCellPriority/${cell.group_column_id}/${cell.group_row_id}`);
+        navigate(
+          `setCellPriority/${cell.group_column_id}/${cell.group_row_id}`
+        );
       }}
       className="w-full h-full p-1"
       style={{ background: color }}
@@ -186,10 +205,12 @@ const PeopleCell: FC<{
   const getUsersQuery = useQuery(trpc.users.getUsers.queryOptions());
 
   const user_names: string[] = [];
+  console.log(getCellQuery.data.content);
+  const user_ids = peopleColumnTypeCodec.decode(getCellQuery.data.content);
 
-  for (let i = 0; i < getCellQuery.data.content.user_ids.length; i++) {
-    const user_id = getCellQuery.data.content.user_ids[i];
-    console.log(user_id);
+  for (let i = 0; i < user_ids.length; i++) {
+    const user_id = user_ids[i];
+
     for (let j = 0; j < (getUsersQuery.data?.length ?? 0); j++) {
       const user = getUsersQuery.data![j];
       if (user.id === user_id) {
@@ -209,7 +230,6 @@ const PeopleCell: FC<{
     >
       {user_names.length ? (
         <>
-          {" "}
           {user_names.map((user) => {
             return <div key={user}>{user}</div>;
           })}

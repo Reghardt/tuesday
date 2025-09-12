@@ -56,7 +56,8 @@ export const statusColumnTypeCodec = {
     };
   },
   decode: (content: JSONType) => {
-    return z.object({ status_id: z.number().nullable() }).parse(content).status_id;
+    return z.object({ status_id: z.number().nullable() }).parse(content)
+      .status_id;
   },
 };
 
@@ -67,6 +68,18 @@ export const priorityColumnTypeCodec = {
     };
   },
   decode: (content: JSONType) => {
-    return z.object({ priority_id: z.number().nullable() }).parse(content).priority_id;
+    return z.object({ priority_id: z.number().nullable() }).parse(content)
+      .priority_id;
+  },
+};
+
+export const peopleColumnTypeCodec = {
+  encode: (user_ids: string[]) => {
+    return {
+      user_ids,
+    };
+  },
+  decode: (content: JSONType) => {
+    return z.object({ user_ids: z.string().array() }).parse(content).user_ids;
   },
 };
