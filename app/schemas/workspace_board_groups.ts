@@ -2,9 +2,9 @@ import type { Client, PoolClient } from "pg";
 import z from "zod";
 import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
-import { ZGroupRow } from "./group_rows";
-import { ZGroupCell } from "./group_cells";
-import { ZGroupColumn } from "./group_column";
+import { ZGroupRow } from "./workspace_board_group_rows";
+import { ZGroupCell } from "./workspace_board_cells";
+import { ZGroupColumn } from "./workspace_board_columns";
 
 export const ZGroup = z.object({
   id: z.number(),

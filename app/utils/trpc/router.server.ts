@@ -1,15 +1,17 @@
 import { workspacesRouter } from "~/schemas/workspace";
 import { t } from "./trpc.server";
-import { groupsRouter } from "~/schemas/groups";
-import { groupColumnsRouter } from "~/schemas/group_column";
-import { groupRowsRouter } from "~/schemas/group_rows";
-import { groupCellsRouter } from "~/schemas/group_cells";
+import { groupsRouter } from "~/schemas/workspace_board_groups";
+import { groupColumnsRouter } from "~/schemas/workspace_board_columns";
+import { groupRowsRouter } from "~/schemas/workspace_board_group_rows";
+import { groupCellsRouter } from "~/schemas/workspace_board_cells";
 import { workspaceStatusesRouter } from "~/schemas/workspace_statuses";
 import { workspacePrioritiesRouter } from "~/schemas/workspace_priorities";
 import { usersRouter } from "~/schemas/users";
+import { workspaceBoardsRouter } from "~/schemas/workspace_boards";
 
 export const appRouter = t.router({
   workspaces: workspacesRouter,
+  workspaceBoards: workspaceBoardsRouter,
   groups: groupsRouter,
   groupColumns: groupColumnsRouter,
   groupRows: groupRowsRouter,
@@ -19,6 +21,4 @@ export const appRouter = t.router({
   users: usersRouter,
 });
 
-// Export only the type of a router!
-// This prevents us from importing server code on the client.
 export type AppRouter = typeof appRouter;

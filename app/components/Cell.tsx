@@ -11,16 +11,12 @@ import {
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
-import type { ZGroupCellExtended } from "~/schemas/groups";
+import type { ZGroupCellExtended } from "~/schemas/workspace_board_groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.groupCells.setGroupCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
 
   return (
     <input
@@ -38,13 +34,9 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.groupCells.setGroupCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
 
   return (
     <input
@@ -62,13 +54,9 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.groupCells.setGroupCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.groupCells.setGroupCellContent.mutationOptions());
 
   return (
     <input
@@ -158,9 +146,7 @@ const PriorityCell: FC<{
   let text = "No Status";
   let color = "#4a5565";
 
-  const priority_id = priorityColumnTypeCodec.decode(
-    getCellQuery.data?.content
-  );
+  const priority_id = priorityColumnTypeCodec.decode(getCellQuery.data?.content);
 
   if (priority_id !== null) {
     for (let i = 0; i < (getWorkspacePrioritiesQuery.data?.length ?? 0); i++) {
@@ -174,9 +160,7 @@ const PriorityCell: FC<{
   return (
     <button
       onClick={() => {
-        navigate(
-          `setCellPriority/${cell.group_column_id}/${cell.group_row_id}`
-        );
+        navigate(`setCellPriority/${cell.group_column_id}/${cell.group_row_id}`);
       }}
       className="w-full h-full p-1"
       style={{ background: color }}

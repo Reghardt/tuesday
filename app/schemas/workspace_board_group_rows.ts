@@ -1,12 +1,8 @@
 import z from "zod";
-import {
-  getRowId,
-  withDbErrorHandling,
-  withTransaction,
-} from "~/utils/pool.server";
+import { getRowId, withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
-import { getGroupColumns } from "./group_column";
-import { createGroupCell } from "./group_cells";
+import { getGroupColumns } from "./workspace_board_columns";
+import { createGroupCell } from "./workspace_board_cells";
 import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
@@ -36,10 +32,7 @@ const getGroupRowsNextColumn = withDbErrorHandling(
       [values.group_id]
     );
 
-    const parsedRes = z
-      .object({ next_pos: z.number() })
-      .array()
-      .parse(res.rows)[0];
+    const parsedRes = z.object({ next_pos: z.number() }).array().parse(res.rows)[0];
 
     if (parsedRes === undefined) {
       throw new Error("index 0 undefined");
@@ -78,41 +71,31 @@ const createGroupRow = withDbErrorHandling(
           group_column_id: group_columns[i].id,
           content: textColumnTypeCodec.encode(""),
         });
-      } else if (
-        group_columns[i].column_type === ZEGroupColumnTypes.enum.number_
-      ) {
+      } else if (group_columns[i].column_type === ZEGroupColumnTypes.enum.number_) {
         await createGroupCell(client, {
           group_row_id: group_row_id,
           group_column_id: group_columns[i].id,
           content: numberColumnTypeCodec.encode(0),
         });
-      } else if (
-        group_columns[i].column_type === ZEGroupColumnTypes.enum.date
-      ) {
+      } else if (group_columns[i].column_type === ZEGroupColumnTypes.enum.date) {
         await createGroupCell(client, {
           group_row_id: group_row_id,
           group_column_id: group_columns[i].id,
           content: dateColumnTypeCodec.encode(null),
         });
-      } else if (
-        group_columns[i].column_type === ZEGroupColumnTypes.enum.status
-      ) {
+      } else if (group_columns[i].column_type === ZEGroupColumnTypes.enum.status) {
         await createGroupCell(client, {
           group_row_id: group_row_id,
           group_column_id: group_columns[i].id,
           content: statusColumnTypeCodec.encode(null),
         });
-      } else if (
-        group_columns[i].column_type === ZEGroupColumnTypes.enum.priority
-      ) {
+      } else if (group_columns[i].column_type === ZEGroupColumnTypes.enum.priority) {
         await createGroupCell(client, {
           group_row_id: group_row_id,
           group_column_id: group_columns[i].id,
           content: priorityColumnTypeCodec.encode(null),
         });
-      } else if (
-        group_columns[i].column_type === ZEGroupColumnTypes.enum.people
-      ) {
+      } else if (group_columns[i].column_type === ZEGroupColumnTypes.enum.people) {
         await createGroupCell(client, {
           group_row_id: group_row_id,
           group_column_id: group_columns[i].id,
@@ -127,10 +110,7 @@ const ZGetGroupRows = ZGroupRow.pick({ group_id: true });
 export const getGroupRows = withDbErrorHandling(
   "getGroupRows",
   async (client, values: z.infer<typeof ZGetGroupRows>) => {
-    const res = await client.query(
-      `SELECT * FROM group_rows WHERE group_id = $1`,
-      [values.group_id]
-    );
+    const res = await client.query(`SELECT * FROM group_rows WHERE group_id = $1`, [values.group_id]);
     return ZGroupRow.array().parse(res.rows);
   }
 );
@@ -139,10 +119,7 @@ const ZDeleteGroupRow = ZGroupRow.pick({ id: true, group_id: true });
 const deleteGroupRow = withDbErrorHandling(
   "deleteGroupRow",
   async (client, values: z.infer<typeof ZDeleteGroupRow>) => {
-    await client.query(
-      `DELETE FROM group_rows WHERE id = $1 AND group_id = $2`,
-      [values.id, values.group_id]
-    );
+    await client.query(`DELETE FROM group_rows WHERE id = $1 AND group_id = $2`, [values.id, values.group_id]);
   }
 );
 

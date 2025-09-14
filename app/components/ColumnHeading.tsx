@@ -1,12 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { FC } from "react";
 import type z from "zod";
-import type { ZGroupColumn } from "~/schemas/group_column";
+import type { ZGroupColumn } from "~/schemas/workspace_board_columns";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const ColumnHeading: FC<{ column: z.infer<typeof ZGroupColumn> }> = ({
-  column,
-}) => {
+const ColumnHeading: FC<{ column: z.infer<typeof ZGroupColumn> }> = ({ column }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -23,9 +21,7 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZGroupColumn> }> = ({
     })
   );
 
-  const setGroupColumnName = useMutation(
-    trpc.groupColumns.setGroupColumnName.mutationOptions()
-  );
+  const setGroupColumnName = useMutation(trpc.groupColumns.setGroupColumnName.mutationOptions());
 
   return (
     <div className="grid grid-cols-[80%_20%]">
