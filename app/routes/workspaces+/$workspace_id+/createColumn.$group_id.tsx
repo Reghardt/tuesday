@@ -17,7 +17,7 @@ export default function Component({ params }: Route.ComponentProps) {
           queryKey: trpc.groupColumns.getGroupColumns.queryKey(),
         });
         queryClient.invalidateQueries({
-          queryKey: trpc.groups.getGroupData.queryKey(),
+          queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
         });
         navigate(-1);
       },

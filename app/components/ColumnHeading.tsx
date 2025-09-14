@@ -15,7 +15,7 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZGroupColumn> }> = ({ column })
           queryKey: trpc.groupColumns.getGroupColumns.queryKey(),
         });
         queryClient.invalidateQueries({
-          queryKey: trpc.groups.getGroupData.queryKey(),
+          queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
         });
       },
     })

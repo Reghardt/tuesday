@@ -19,8 +19,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export default function Component({ loaderData }: Route.ComponentProps) {
-  const [workspaceGroupName, setWorkspaceGroupName] = useState("");
-
   const [workspaceBoardName, setWorkspaceBoardName] = useState("");
 
   const trpc = useTRPC();
@@ -30,18 +28,6 @@ export default function Component({ loaderData }: Route.ComponentProps) {
   //     workspace_id: loaderData.workspace.id,
   //   })
   // );
-
-  const createWorkspaceMutation = useMutation(
-    trpc.groups.createGroupWithWorkspaceParent.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.groups.getGroupsWithWorkspaceParent.queryKey(),
-        });
-
-        setWorkspaceGroupName("");
-      },
-    })
-  );
 
   const createWorkspaceBoardMutation = useMutation(
     trpc.workspaceBoards.createWorkspaceBoard.mutationOptions({
@@ -74,7 +60,7 @@ export default function Component({ loaderData }: Route.ComponentProps) {
                     <NavLink
                       className={({ isActive }) => (isActive ? "bg-green-800" : "")}
                       to={`board/${board.id}`}
-                      key={board.workspace_id}
+                      key={board.id}
                     >
                       {board.name_}
                     </NavLink>
