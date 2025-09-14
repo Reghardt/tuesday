@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTRPC } from "~/utils/trpc/trpc";
 import type { Route } from "./+types/_route";
+import WorkspaceBoardGroup from "~/components/WorkspaceBoardGroup";
 
 export default function Component({ params }: Route.ComponentProps) {
   const [workspaceGroupName, setWorkspaceGroupName] = useState("");
@@ -10,7 +11,7 @@ export default function Component({ params }: Route.ComponentProps) {
   const queryClient = useQueryClient();
   const getWorkspaceBoardGroups = useQuery(
     trpc.workspaceBoardsGroups.getWorkspaceBoardGroups.queryOptions({
-      workspace_board_id: Number(params.workspace_id),
+      workspace_board_id: Number(params.board_id),
     })
   );
 
@@ -36,7 +37,7 @@ export default function Component({ params }: Route.ComponentProps) {
             return (
               <div key={group.id}>
                 <div>{group.name_}</div>
-                {/* <WorkspaceGroupColumns group_id={group.id} workspace_id={loaderData.workspace.id} /> */}
+                <WorkspaceBoardGroup group_id={group.id} workspace_id={Number(params.board_id)} />
               </div>
             );
           })}

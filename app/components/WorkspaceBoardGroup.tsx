@@ -5,7 +5,7 @@ import { useTRPC } from "~/utils/trpc/trpc";
 import { Cell } from "./Cell";
 import ColumnHeading from "./ColumnHeading";
 
-const WorkspaceGroupColumns: FC<{ group_id: number; workspace_id: number }> = ({ group_id, workspace_id }) => {
+const WorkspaceBoardGroup: FC<{ group_id: number; workspace_id: number }> = ({ group_id, workspace_id }) => {
   const navigate = useNavigate();
 
   const trpc = useTRPC();
@@ -132,4 +132,4 @@ const WorkspaceGroupColumns: FC<{ group_id: number; workspace_id: number }> = ({
   );
 };
 
-export default WorkspaceGroupColumns;
+export default WorkspaceBoardGroup;

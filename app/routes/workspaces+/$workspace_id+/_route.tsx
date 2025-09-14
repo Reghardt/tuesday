@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
 import { useState } from "react";
 import { getWorkspace } from "~/schemas/workspace";
-import WorkspaceGroupColumns from "~/components/GroupColumns";
+import WorkspaceBoardGroup from "~/components/WorkspaceBoardGroup";
 import { withTransaction } from "~/utils/pool.server";
 import { useTRPC } from "~/utils/trpc/trpc";
 import { NavLink, Outlet } from "react-router";
