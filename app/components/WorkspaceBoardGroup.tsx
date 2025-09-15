@@ -16,18 +16,18 @@ const WorkspaceBoardGroup: FC<{
 
   const getGroupColumnsQuery = useQuery(
     trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryOptions({
-      workspace_board_id: workspace_board_group_id,
+      workspace_board_id: workspace_board_id,
     })
   );
 
   const getWorkspaceBoardGroupDataQuery = useQuery(
     trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryOptions({
-      id: workspace_board_id,
+      id: workspace_board_group_id,
     })
   );
 
-  const createGroupRowMutation = useMutation(
-    trpc.groupRows.createGroupRow.mutationOptions({
+  const createWorkspaceBoardGroupRowMutation = useMutation(
+    trpc.workspaceBoardGroupRows.createWorkspaceBoardGroupRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey:
@@ -38,7 +38,7 @@ const WorkspaceBoardGroup: FC<{
   );
 
   const deleteRowMutation = useMutation(
-    trpc.groupRows.deleteGroupRow.mutationOptions({
+    trpc.workspaceBoardGroupRows.deleteGroupRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey:
@@ -85,7 +85,7 @@ const WorkspaceBoardGroup: FC<{
                     // console.log(cell.content);
                     return (
                       <td
-                        key={`${cell.group_column_id}_${cell.group_row_id}`}
+                        key={`${cell.workspace_board_column_id}_${cell.workspace_board_group_row_id}`}
                         className="text-left border"
                       >
                         <Cell
@@ -102,7 +102,8 @@ const WorkspaceBoardGroup: FC<{
                         onClick={() =>
                           deleteRowMutation.mutate({
                             id: row.id,
-                            group_id: row.group_id,
+                            workspace_board_group_id:
+                              row.workspace_board_group_id,
                           })
                         }
                         className="text-red-700 hover:bg-red-300 w-30"
@@ -135,11 +136,11 @@ const WorkspaceBoardGroup: FC<{
         <div>
           <button
             className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
-            // onClick={() => {
-            //   createGroupRowMutation.mutate({
-            //     group_id: group_id,
-            //   });
-            // }}
+            onClick={() => {
+              createWorkspaceBoardGroupRowMutation.mutate({
+                workspace_board_group_id: workspace_board_group_id,
+              });
+            }}
           >
             Create Row
           </button>

@@ -40,6 +40,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   name_: "Text",
                   workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.text,
+                  workspace_board_group_id: Number(params.group_id),
                 });
               }}
             >
@@ -51,6 +52,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   name_: "Number",
                   workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.number_,
+                  workspace_board_group_id: Number(params.group_id),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -63,6 +65,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   name_: "Date",
                   workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.date,
+                  workspace_board_group_id: Number(params.group_id),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -78,6 +81,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   name_: "Status",
                   workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.status,
+                  workspace_board_group_id: Number(params.group_id),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -90,6 +94,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   name_: "Priority",
                   workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.priority,
+                  workspace_board_group_id: Number(params.group_id),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -102,6 +107,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   name_: "People",
                   workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.people,
+                  workspace_board_group_id: Number(params.group_id),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"

@@ -47,7 +47,7 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZWorkspaceBoardColumn> }> = ({
         onClick={() => {
           deleteColumnMutation.mutate({
             id: column.id,
-            group_id: column.group_id,
+            workspace_board_id: column.workspace_board_id,
           });
         }}
       >

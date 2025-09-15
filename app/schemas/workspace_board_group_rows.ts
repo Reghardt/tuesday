@@ -6,7 +6,7 @@ import {
 } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 import { getWorkspaceBoardColumns } from "./workspace_board_columns";
-import { createGroupCell } from "./workspace_board_cells";
+import { createWorkspaceBoardCell } from "./workspace_board_cells";
 import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
@@ -16,11 +16,7 @@ import {
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
-import { ZWorkspaceBoards } from "./workspace_boards";
-import {
-  getWorkspaceBoardGroup,
-  getWorkspaceBoardGroups,
-} from "./workspace_board_groups";
+import { getWorkspaceBoardGroup } from "./workspace_board_groups";
 
 export const ZWorkspaceBoardGroupRows = z.object({
   id: z.number(),
@@ -67,7 +63,7 @@ const createWorkspaceBoardGroupRow = withDbErrorHandling(
       await client.query(
         `
           INSERT INTO workspace_board_group_rows(workspace_board_group_id, level, pos) 
-          VALUES($1, $2) 
+          VALUES($1, $2, $3) 
           RETURNING id;
           `,
         [values.workspace_board_group_id, 0, nextPos]
@@ -78,59 +74,59 @@ const createWorkspaceBoardGroupRow = withDbErrorHandling(
     });
 
     const workspace_board_columns = await getWorkspaceBoardColumns(client, {
-      workspace_board_id: workspace_board_group.id,
+      workspace_board_id: workspace_board_group.workspace_board_id,
     });
     for (let i = 0; i < workspace_board_columns.length; i++) {
       if (
         workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.text
       ) {
-        await createGroupCell(client, {
-          group_row_id: group_row_id,
-          group_column_id: workspace_board_columns[i].id,
+        await createWorkspaceBoardCell(client, {
+          workspace_board_group_row_id: group_row_id,
+          workspace_board_column_id: workspace_board_columns[i].id,
           content: textColumnTypeCodec.encode(""),
         });
       } else if (
         workspace_board_columns[i].column_type ===
         ZEGroupColumnTypes.enum.number_
       ) {
-        await createGroupCell(client, {
-          group_row_id: group_row_id,
-          group_column_id: workspace_board_columns[i].id,
+        await createWorkspaceBoardCell(client, {
+          workspace_board_group_row_id: group_row_id,
+          workspace_board_column_id: workspace_board_columns[i].id,
           content: numberColumnTypeCodec.encode(0),
         });
       } else if (
         workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.date
       ) {
-        await createGroupCell(client, {
-          group_row_id: group_row_id,
-          group_column_id: workspace_board_columns[i].id,
+        await createWorkspaceBoardCell(client, {
+          workspace_board_group_row_id: group_row_id,
+          workspace_board_column_id: workspace_board_columns[i].id,
           content: dateColumnTypeCodec.encode(null),
         });
       } else if (
         workspace_board_columns[i].column_type ===
         ZEGroupColumnTypes.enum.status
       ) {
-        await createGroupCell(client, {
-          group_row_id: group_row_id,
-          group_column_id: workspace_board_columns[i].id,
+        await createWorkspaceBoardCell(client, {
+          workspace_board_group_row_id: group_row_id,
+          workspace_board_column_id: workspace_board_columns[i].id,
           content: statusColumnTypeCodec.encode(null),
         });
       } else if (
         workspace_board_columns[i].column_type ===
         ZEGroupColumnTypes.enum.priority
       ) {
-        await createGroupCell(client, {
-          group_row_id: group_row_id,
-          group_column_id: workspace_board_columns[i].id,
+        await createWorkspaceBoardCell(client, {
+          workspace_board_group_row_id: group_row_id,
+          workspace_board_column_id: workspace_board_columns[i].id,
           content: priorityColumnTypeCodec.encode(null),
         });
       } else if (
         workspace_board_columns[i].column_type ===
         ZEGroupColumnTypes.enum.people
       ) {
-        await createGroupCell(client, {
-          group_row_id: group_row_id,
-          group_column_id: workspace_board_columns[i].id,
+        await createWorkspaceBoardCell(client, {
+          workspace_board_group_row_id: group_row_id,
+          workspace_board_column_id: workspace_board_columns[i].id,
           content: peopleColumnTypeCodec.encode([]),
         });
       }
@@ -166,8 +162,8 @@ const deleteWorkspaceBoardGroupRow = withDbErrorHandling(
   }
 );
 
-export const groupRowsRouter = t.router({
-  createGroupRow: t.procedure
+export const workspaceBoardGroupRowsRouter = t.router({
+  createWorkspaceBoardGroupRow: t.procedure
     .input(ZCreateWorkspaceBoardGroupRow)
     .mutation(async (opts) => {
       await withTransaction(async (client) => {

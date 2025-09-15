@@ -26,13 +26,13 @@ export default function Component({ params }: Route.ComponentProps) {
   );
 
   const setGroupCellContentMutation = useMutation(
-    trpc.groupCells.setGroupCellContent.mutationOptions({
+    trpc.groupCells.seteWorkspaceBoardCellContent.mutationOptions({
       onSuccess: () => {
         navigate(-1);
         queryClient.invalidateQueries({
-          queryKey: trpc.groupCells.getGroupCell.queryKey({
-            group_row_id: Number(params.group_row_id),
-            group_column_id: Number(params.group_column_id),
+          queryKey: trpc.groupCells.getWorkspaceBoardCell.queryKey({
+            workspace_board_group_row_id: Number(params.group_row_id),
+            workspace_board_column_id: Number(params.group_column_id),
           }),
         });
       },
@@ -55,8 +55,8 @@ export default function Component({ params }: Route.ComponentProps) {
               <button
                 onClick={() => {
                   setGroupCellContentMutation.mutate({
-                    group_row_id: Number(params.group_row_id),
-                    group_column_id: Number(params.group_column_id),
+                    workspace_board_group_row_id: Number(params.group_row_id),
+                    workspace_board_column_id: Number(params.group_column_id),
                     content: { user_ids: [user.id] },
                   });
                 }}
@@ -79,7 +79,12 @@ export default function Component({ params }: Route.ComponentProps) {
             </div>
             <div className="flex flex-col">
               <label>Color</label>
-              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className=" w-full h-10" />
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className=" w-full h-10"
+              />
             </div>
 
             <button
