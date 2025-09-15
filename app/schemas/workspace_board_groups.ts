@@ -2,9 +2,9 @@ import type { Client, PoolClient } from "pg";
 import z from "zod";
 import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
-import { ZGroupRow } from "./workspace_board_group_rows";
+import { ZWorkspaceBoardGroupRows } from "./workspace_board_group_rows";
 import { ZGroupCell } from "./workspace_board_cells";
-import { ZGroupColumn } from "./workspace_board_columns";
+import { ZWorkspaceBoardColumn } from "./workspace_board_columns";
 
 export const ZWorkspaceBoardGroup = z.object({
   id: z.number(),
@@ -13,22 +13,45 @@ export const ZWorkspaceBoardGroup = z.object({
   pos: z.number(),
 });
 
-const ZGetWorkspaceBoardGroups = ZWorkspaceBoardGroup.pick({ workspace_board_id: true });
+const ZGetWorkspaceBoardGroups = ZWorkspaceBoardGroup.pick({
+  workspace_board_id: true,
+});
 export const getWorkspaceBoardGroups = withDbErrorHandling(
   "getWorkspaceBoardGroups",
   async (client, values: z.infer<typeof ZGetWorkspaceBoardGroups>) => {
-    const res = await client.query("SELECT * from workspace_board_groups WHERE workspace_board_id = $1", [
-      values.workspace_board_id,
-    ]);
+    const res = await client.query(
+      "SELECT * from workspace_board_groups WHERE workspace_board_id = $1",
+      [values.workspace_board_id]
+    );
 
     return ZWorkspaceBoardGroup.array().parse(res.rows);
   }
 );
 
-const ZGetWorkspaceBoardGroupsNextPos = ZWorkspaceBoardGroup.pick({ workspace_board_id: true });
+const ZGetWorkspaceBoardGroup = ZWorkspaceBoardGroup.pick({
+  id: true,
+});
+export const getWorkspaceBoardGroup = withDbErrorHandling(
+  "getWorkspaceBoardGroups",
+  async (client, values: z.infer<typeof ZGetWorkspaceBoardGroup>) => {
+    const res = await client.query(
+      "SELECT * from workspace_board_groups WHERE id = $1",
+      [values.id]
+    );
+
+    return ZWorkspaceBoardGroup.array().parse(res.rows)[0];
+  }
+);
+
+const ZGetWorkspaceBoardGroupsNextPos = ZWorkspaceBoardGroup.pick({
+  workspace_board_id: true,
+});
 const getWorkspaceBoardGroupsNextPos = withDbErrorHandling(
   "getWorkspaceBoardGroupsNextPos",
-  async (client: PoolClient, values: z.infer<typeof ZGetWorkspaceBoardGroupsNextPos>) => {
+  async (
+    client: PoolClient,
+    values: z.infer<typeof ZGetWorkspaceBoardGroupsNextPos>
+  ) => {
     const res = await client.query(
       `
 				SELECT COALESCE(MAX(pos), -1) + 1 as next_pos
@@ -38,7 +61,8 @@ const getWorkspaceBoardGroupsNextPos = withDbErrorHandling(
       [values.workspace_board_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
+      .next_pos;
   }
 );
 
@@ -54,25 +78,26 @@ export const createWorkspaceBoardGroup = withDbErrorHandling(
       workspace_board_id: values.workspace_board_id,
     });
 
-    return await client.query("INSERT INTO workspace_board_groups(workspace_board_id, name_, pos) VALUES($1, $2, $3)", [
-      values.workspace_board_id,
-      values.name_,
-      nextPos,
-    ]);
+    return await client.query(
+      "INSERT INTO workspace_board_groups(workspace_board_id, name_, pos) VALUES($1, $2, $3)",
+      [values.workspace_board_id, values.name_, nextPos]
+    );
   }
 );
 
-const ZGetGroupData = ZWorkspaceBoardGroup.pick({ id: true });
+const ZGetWorkspaceBoardGroupData = ZWorkspaceBoardGroup.pick({ id: true });
 export const ZGroupCellExtended = ZGroupCell.extend(
-  ZGroupColumn.pick({
+  ZWorkspaceBoardColumn.pick({
     column_type: true,
     type_properties: true,
     pos: true,
   }).shape
 );
-const getGroupData = withDbErrorHandling("getGroupData", async (client, values: z.infer<typeof ZGetGroupData>) => {
-  const res = await client.query(
-    `
+const getWorkspaceBoardGroupData = withDbErrorHandling(
+  "getWorkspaceBoardGroupData",
+  async (client, values: z.infer<typeof ZGetWorkspaceBoardGroupData>) => {
+    const res = await client.query(
+      `
       SELECT
       group_rows.id,
       group_rows.group_id,
@@ -97,37 +122,47 @@ const getGroupData = withDbErrorHandling("getGroupData", async (client, values: 
       GROUP BY group_rows.id, group_rows.group_id, group_rows.pos
       ORDER BY group_rows.pos ASC
       `,
-    [values.id]
-  );
+      [values.id]
+    );
 
-  const parsedRes = ZGroupRow.extend({
-    cells: ZGroupCellExtended.array(),
-  })
-    .array()
-    .parse(res.rows);
+    const parsedRes = ZWorkspaceBoardGroupRows.extend({
+      cells: ZGroupCellExtended.array(),
+    })
+      .array()
+      .parse(res.rows);
 
-  console.log(parsedRes);
-  return parsedRes;
-});
+    console.log(parsedRes);
+    return parsedRes;
+  }
+);
 
 export const workspaceBoardGroupsRouter = t.router({
-  getWorkspaceBoardGroups: t.procedure.input(ZGetWorkspaceBoardGroups).query(async (opts) => {
-    return await withTransaction((client) =>
-      getWorkspaceBoardGroups(client, {
-        workspace_board_id: opts.input.workspace_board_id,
-      })
-    );
-  }),
-  createWorkspaceBoardGroup: t.procedure.input(ZCreateGroupWithWorkspaceParent).mutation(async (opts) => {
-    return await withTransaction((client) =>
-      createWorkspaceBoardGroup(client, {
-        workspace_board_id: opts.input.workspace_board_id,
-        name_: opts.input.name_,
-      })
-    );
-  }),
+  getWorkspaceBoardGroups: t.procedure
+    .input(ZGetWorkspaceBoardGroups)
+    .query(async (opts) => {
+      return await withTransaction((client) =>
+        getWorkspaceBoardGroups(client, {
+          workspace_board_id: opts.input.workspace_board_id,
+        })
+      );
+    }),
+  createWorkspaceBoardGroup: t.procedure
+    .input(ZCreateGroupWithWorkspaceParent)
+    .mutation(async (opts) => {
+      return await withTransaction((client) =>
+        createWorkspaceBoardGroup(client, {
+          workspace_board_id: opts.input.workspace_board_id,
+          name_: opts.input.name_,
+        })
+      );
+    }),
 
-  getGroupData: t.procedure.input(ZGetGroupData).query(async (opts) => {
-    return await withTransaction(async (client) => await getGroupData(client, { id: opts.input.id }));
-  }),
+  getWorkspaceBoardGroupData: t.procedure
+    .input(ZGetWorkspaceBoardGroupData)
+    .query(async (opts) => {
+      return await withTransaction(
+        async (client) =>
+          await getWorkspaceBoardGroupData(client, { id: opts.input.id })
+      );
+    }),
 });

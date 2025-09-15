@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
 import { useState } from "react";
 import { getWorkspace } from "~/schemas/workspace";
-import WorkspaceBoardGroup from "~/components/WorkspaceBoardGroup";
 import { withTransaction } from "~/utils/pool.server";
 import { useTRPC } from "~/utils/trpc/trpc";
 import { NavLink, Outlet } from "react-router";
@@ -10,7 +9,9 @@ import type { Route } from "./+types/_route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const workspace_id = z.coerce.number().parse(params.workspace_id);
-  const workspace = await withTransaction((client) => getWorkspace(client, { id: workspace_id }));
+  const workspace = await withTransaction((client) =>
+    getWorkspace(client, { id: workspace_id })
+  );
   if (workspace === undefined) {
     throw Error("That Workspace Does not exist");
   }
@@ -33,7 +34,9 @@ export default function Component({ loaderData }: Route.ComponentProps) {
     trpc.workspaceBoards.createWorkspaceBoard.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceBoards.getGWorkspaceBoards.queryKey({ workspace_id: loaderData.workspace.id }),
+          queryKey: trpc.workspaceBoards.getGWorkspaceBoards.queryKey({
+            workspace_id: loaderData.workspace.id,
+          }),
         });
 
         setWorkspaceBoardName("");
@@ -42,7 +45,9 @@ export default function Component({ loaderData }: Route.ComponentProps) {
   );
 
   const getWorkspaceBoardsQuery = useQuery(
-    trpc.workspaceBoards.getGWorkspaceBoards.queryOptions({ workspace_id: loaderData.workspace.id })
+    trpc.workspaceBoards.getGWorkspaceBoards.queryOptions({
+      workspace_id: loaderData.workspace.id,
+    })
   );
   return (
     <>
@@ -52,13 +57,17 @@ export default function Component({ loaderData }: Route.ComponentProps) {
             <div className=" text-lg">{loaderData.workspace.name_}</div>
             <div>Workspace Boards</div>
             {(getWorkspaceBoardsQuery.data?.length ?? 0) === 0 ? (
-              <div className="text-center w-full text-sm text-gray-400">No Boards</div>
+              <div className="text-center w-full text-sm text-gray-400">
+                No Boards
+              </div>
             ) : (
               <div className="flex flex-col gap-2">
                 {getWorkspaceBoardsQuery.data?.map((board) => {
                   return (
                     <NavLink
-                      className={({ isActive }) => (isActive ? "bg-green-800" : "")}
+                      className={({ isActive }) =>
+                        isActive ? "bg-green-800" : ""
+                      }
                       to={`board/${board.id}`}
                       key={board.id}
                     >

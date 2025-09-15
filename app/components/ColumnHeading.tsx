@@ -1,27 +1,33 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { FC } from "react";
 import type z from "zod";
-import type { ZGroupColumn } from "~/schemas/workspace_board_columns";
+import type { ZWorkspaceBoardColumn } from "~/schemas/workspace_board_columns";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const ColumnHeading: FC<{ column: z.infer<typeof ZGroupColumn> }> = ({ column }) => {
+const ColumnHeading: FC<{ column: z.infer<typeof ZWorkspaceBoardColumn> }> = ({
+  column,
+}) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const deleteColumnMutation = useMutation(
-    trpc.groupColumns.deleteGroupColumns.mutationOptions({
+    trpc.workspaceBoardColumns.deleteWorkspaceBoardColumn.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.groupColumns.getGroupColumns.queryKey(),
+          queryKey:
+            trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryKey(),
         });
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
+          queryKey:
+            trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryKey(),
         });
       },
     })
   );
 
-  const setGroupColumnName = useMutation(trpc.groupColumns.setGroupColumnName.mutationOptions());
+  const setGroupColumnName = useMutation(
+    trpc.workspaceBoardColumns.setGroupColumnName.mutationOptions()
+  );
 
   return (
     <div className="grid grid-cols-[80%_20%]">

@@ -1,7 +1,7 @@
 import { workspacesRouter } from "~/schemas/workspace";
 import { t } from "./trpc.server";
 import { workspaceBoardGroupsRouter } from "~/schemas/workspace_board_groups";
-import { groupColumnsRouter } from "~/schemas/workspace_board_columns";
+import { workspaceBoardColumnsRouter } from "~/schemas/workspace_board_columns";
 import { groupRowsRouter } from "~/schemas/workspace_board_group_rows";
 import { groupCellsRouter } from "~/schemas/workspace_board_cells";
 import { workspaceStatusesRouter } from "~/schemas/workspace_statuses";
@@ -13,7 +13,7 @@ export const appRouter = t.router({
   workspaces: workspacesRouter,
   workspaceBoards: workspaceBoardsRouter,
   workspaceBoardsGroups: workspaceBoardGroupsRouter,
-  groupColumns: groupColumnsRouter,
+  workspaceBoardColumns: workspaceBoardColumnsRouter,
   groupRows: groupRowsRouter,
   groupCells: groupCellsRouter,
   workspaceStatuses: workspaceStatusesRouter,

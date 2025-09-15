@@ -1,25 +1,28 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FC, type JSX } from "react";
+import { type FC } from "react";
 import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
 import { Cell } from "./Cell";
 import ColumnHeading from "./ColumnHeading";
 
-const WorkspaceBoardGroup: FC<{ group_id: number; workspace_id: number }> = ({ group_id, workspace_id }) => {
+const WorkspaceBoardGroup: FC<{
+  workspace_board_group_id: number;
+  workspace_board_id: number;
+}> = ({ workspace_board_group_id, workspace_board_id }) => {
   const navigate = useNavigate();
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const getGroupColumnsQuery = useQuery(
-    trpc.groupColumns.getGroupColumns.queryOptions({
-      group_id,
+    trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryOptions({
+      workspace_board_id: workspace_board_group_id,
     })
   );
 
-  const getGroupDataQuery = useQuery(
-    trpc.workspaceBoardsGroups.getGroupData.queryOptions({
-      id: group_id,
+  const getWorkspaceBoardGroupDataQuery = useQuery(
+    trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryOptions({
+      id: workspace_board_id,
     })
   );
 
@@ -27,7 +30,8 @@ const WorkspaceBoardGroup: FC<{ group_id: number; workspace_id: number }> = ({ g
     trpc.groupRows.createGroupRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
+          queryKey:
+            trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryKey(),
         });
       },
     })
@@ -37,13 +41,17 @@ const WorkspaceBoardGroup: FC<{ group_id: number; workspace_id: number }> = ({ g
     trpc.groupRows.deleteGroupRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
+          queryKey:
+            trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryKey(),
         });
       },
     })
   );
 
-  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
+  function createTable(
+    rows: typeof getWorkspaceBoardGroupDataQuery.data,
+    columns: typeof getGroupColumnsQuery.data
+  ) {
     return (
       <div className="flex gap-2">
         <table>
@@ -59,7 +67,9 @@ const WorkspaceBoardGroup: FC<{ group_id: number; workspace_id: number }> = ({ g
               <th>
                 <button
                   className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
-                  onClick={() => navigate(`createColumn/${group_id}`)}
+                  onClick={() =>
+                    navigate(`createColumn/${workspace_board_group_id}`)
+                  }
                 >
                   Create Column
                 </button>
@@ -74,8 +84,14 @@ const WorkspaceBoardGroup: FC<{ group_id: number; workspace_id: number }> = ({ g
                   {row.cells.map((cell) => {
                     // console.log(cell.content);
                     return (
-                      <td key={`${cell.group_column_id}_${cell.group_row_id}`} className="text-left border">
-                        <Cell cell={cell} workspace_id={workspace_id} />
+                      <td
+                        key={`${cell.group_column_id}_${cell.group_row_id}`}
+                        className="text-left border"
+                      >
+                        <Cell
+                          cell={cell}
+                          workspace_id={workspace_board_group_id}
+                        />
                       </td>
                     );
                   })}
@@ -110,17 +126,20 @@ const WorkspaceBoardGroup: FC<{ group_id: number; workspace_id: number }> = ({ g
     <div>
       <div className="flex gap-2"></div>
 
-      {createTable(getGroupDataQuery.data, getGroupColumnsQuery.data)}
+      {createTable(
+        getWorkspaceBoardGroupDataQuery.data,
+        getGroupColumnsQuery.data
+      )}
 
       {(getGroupColumnsQuery.data?.length ?? 0) > 0 ? (
         <div>
           <button
             className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
-            onClick={() => {
-              createGroupRowMutation.mutate({
-                group_id: group_id,
-              });
-            }}
+            // onClick={() => {
+            //   createGroupRowMutation.mutate({
+            //     group_id: group_id,
+            //   });
+            // }}
           >
             Create Row
           </button>

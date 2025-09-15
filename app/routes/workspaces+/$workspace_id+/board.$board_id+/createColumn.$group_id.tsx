@@ -10,15 +10,16 @@ export default function Component({ params }: Route.ComponentProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const createGroupColumnMutation = useMutation(
-    trpc.groupColumns.createGroupColumn.mutationOptions({
+  const createWorkspaceBoardColumnMutation = useMutation(
+    trpc.workspaceBoardColumns.createWorkspaceBoardColumn.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.groupColumns.getGroupColumns.queryKey(),
+          queryKey:
+            trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryKey(),
         });
-        queryClient.invalidateQueries({
-          queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
-        });
+        // queryClient.invalidateQueries({
+        //   queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
+        // });
         navigate(-1);
       },
     })
@@ -35,9 +36,9 @@ export default function Component({ params }: Route.ComponentProps) {
             <button
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
               onClick={() => {
-                createGroupColumnMutation.mutate({
+                createWorkspaceBoardColumnMutation.mutate({
                   name_: "Text",
-                  group_id: Number(params.group_id),
+                  workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.text,
                 });
               }}
@@ -46,9 +47,9 @@ export default function Component({ params }: Route.ComponentProps) {
             </button>
             <button
               onClick={() => {
-                createGroupColumnMutation.mutate({
+                createWorkspaceBoardColumnMutation.mutate({
                   name_: "Number",
-                  group_id: Number(params.group_id),
+                  workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.number_,
                 });
               }}
@@ -58,9 +59,9 @@ export default function Component({ params }: Route.ComponentProps) {
             </button>
             <button
               onClick={() => {
-                createGroupColumnMutation.mutate({
+                createWorkspaceBoardColumnMutation.mutate({
                   name_: "Date",
-                  group_id: Number(params.group_id),
+                  workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.date,
                 });
               }}
@@ -68,12 +69,14 @@ export default function Component({ params }: Route.ComponentProps) {
             >
               Date
             </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Time</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
+              Time
+            </button>
             <button
               onClick={() => {
-                createGroupColumnMutation.mutate({
+                createWorkspaceBoardColumnMutation.mutate({
                   name_: "Status",
-                  group_id: Number(params.group_id),
+                  workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.status,
                 });
               }}
@@ -83,9 +86,9 @@ export default function Component({ params }: Route.ComponentProps) {
             </button>
             <button
               onClick={() => {
-                createGroupColumnMutation.mutate({
+                createWorkspaceBoardColumnMutation.mutate({
                   name_: "Priority",
-                  group_id: Number(params.group_id),
+                  workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.priority,
                 });
               }}
@@ -95,9 +98,9 @@ export default function Component({ params }: Route.ComponentProps) {
             </button>
             <button
               onClick={() => {
-                createGroupColumnMutation.mutate({
+                createWorkspaceBoardColumnMutation.mutate({
                   name_: "People",
-                  group_id: Number(params.group_id),
+                  workspace_board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.people,
                 });
               }}
@@ -105,11 +108,21 @@ export default function Component({ params }: Route.ComponentProps) {
             >
               People
             </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">File</button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Timeline</button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Tags</button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Checkbox</button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Updates</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
+              File
+            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
+              Timeline
+            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
+              Tags
+            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
+              Checkbox
+            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
+              Updates
+            </button>
           </div>
         </div>
       </div>
