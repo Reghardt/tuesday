@@ -14,12 +14,11 @@ export default function Component({ params }: Route.ComponentProps) {
     trpc.workspaceBoardColumns.createWorkspaceBoardColumn.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey:
-            trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryKey(),
+          queryKey: trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryKey(),
         });
-        // queryClient.invalidateQueries({
-        //   queryKey: trpc.workspaceBoardsGroups.getGroupData.queryKey(),
-        // });
+        queryClient.invalidateQueries({
+          queryKey: trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryKey(),
+        });
         navigate(-1);
       },
     })
@@ -72,9 +71,7 @@ export default function Component({ params }: Route.ComponentProps) {
             >
               Date
             </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Time
-            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Time</button>
             <button
               onClick={() => {
                 createWorkspaceBoardColumnMutation.mutate({
@@ -114,21 +111,11 @@ export default function Component({ params }: Route.ComponentProps) {
             >
               People
             </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              File
-            </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Timeline
-            </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Tags
-            </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Checkbox
-            </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Updates
-            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">File</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Timeline</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Tags</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Checkbox</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Updates</button>
           </div>
         </div>
       </div>

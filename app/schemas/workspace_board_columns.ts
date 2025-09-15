@@ -1,9 +1,5 @@
 import z from "zod";
-import {
-  getRowId,
-  withDbErrorHandling,
-  withTransaction,
-} from "~/utils/pool.server";
+import { getRowId, withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 import {
   dateColumnTypeCodec,
@@ -14,12 +10,8 @@ import {
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
-import { getWorkspaceBoardGroupRows } from "./workspace_board_group_rows";
-import {
-  getWorkspaceBoardGroup,
-  ZWorkspaceBoardGroup,
-} from "./workspace_board_groups";
 import { createWorkspaceBoardCell } from "./workspace_board_cells";
+import { getWorkspaceBoardRows } from "./workspace_board_groups";
 
 export const ZWorkspaceBoardColumn = z.object({
   id: z.number(),
@@ -46,8 +38,7 @@ const getWorkspaceBoardColumnsNextPos = withDbErrorHandling(
       [values.workspace_board_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
-      .next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
   }
 );
 
@@ -126,23 +117,18 @@ export const createWorkspaceBoardColumn = withDbErrorHandling(
       workspace_board_id: values.workspace_board_id,
     });
 
+    console.log("###########", values, nextPos);
+
     // create the workspace group column with the pos from above
     const workspace_board_column_id = getRowId(
       await client.query(
         "INSERT INTO workspace_board_columns(workspace_board_id, level, name_, column_type, type_properties, pos) VALUES($1, $2, $3, $4, $5, $6) RETURNING *",
-        [
-          values.workspace_board_id,
-          0,
-          values.name_,
-          values.column_type,
-          {},
-          nextPos,
-        ]
+        [values.workspace_board_id, 0, values.name_, values.column_type, {}, nextPos]
       )
     );
 
-    const group_rows = await getWorkspaceBoardGroupRows(client, {
-      workspace_board_group_id: values.workspace_board_group_id,
+    const group_rows = await getWorkspaceBoardRows(client, {
+      workspace_board_id: values.workspace_board_id,
     });
 
     if (values.column_type === ZEGroupColumnTypes.enum.text) {
@@ -204,10 +190,10 @@ const ZDeleteWorkspaceBoardColumn = ZWorkspaceBoardColumn.pick({
 export const deleteWorkspaceBoardColumn = withDbErrorHandling(
   "deleteWorkspaceBoardColumn",
   async (client, values: z.infer<typeof ZDeleteWorkspaceBoardColumn>) => {
-    await client.query(
-      "DELETE FROM workspace_board_columns WHERE id = $1 AND workspace_board_id = $2",
-      [values.id, values.workspace_board_id]
-    );
+    await client.query("DELETE FROM workspace_board_columns WHERE id = $1 AND workspace_board_id = $2", [
+      values.id,
+      values.workspace_board_id,
+    ]);
   }
 );
 
@@ -218,53 +204,42 @@ const ZSetWorkspaceBoardColumnName = ZWorkspaceBoardColumn.pick({
 const setWorkspaceBoardColumnName = withDbErrorHandling(
   "setWorkspaceBoardColumnName",
   async (client, values: z.infer<typeof ZSetWorkspaceBoardColumnName>) => {
-    await client.query(
-      "UPDATE workspace_board_columns SET name_ = $1 WHERE id = $2",
-      [values.name_, values.id]
-    );
+    await client.query("UPDATE workspace_board_columns SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
   }
 );
 
 export const workspaceBoardColumnsRouter = t.router({
-  createWorkspaceBoardColumn: t.procedure
-    .input(ZCreateWorkspaceBoardColumn)
-    .mutation(async (opts) => {
-      await withTransaction((client) =>
-        createWorkspaceBoardColumn(client, {
-          workspace_board_id: opts.input.workspace_board_id,
-          name_: opts.input.name_,
-          column_type: opts.input.column_type,
-          workspace_board_group_id: opts.input.workspace_board_group_id,
-        })
-      );
-    }),
-  getWorkspaceBoardColumns: t.procedure
-    .input(ZGetWorkspaceBoardColumns)
-    .query(async (opts) => {
-      return await withTransaction((client) =>
-        getWorkspaceBoardColumns(client, {
-          workspace_board_id: opts.input.workspace_board_id,
-        })
-      );
-    }),
-  deleteWorkspaceBoardColumn: t.procedure
-    .input(ZDeleteWorkspaceBoardColumn)
-    .mutation(async (opts) => {
-      return await withTransaction((client) =>
-        deleteWorkspaceBoardColumn(client, {
-          id: opts.input.id,
-          workspace_board_id: opts.input.workspace_board_id,
-        })
-      );
-    }),
-  setGroupColumnName: t.procedure
-    .input(ZSetWorkspaceBoardColumnName)
-    .mutation(async (opts) => {
-      return await withTransaction((client) =>
-        setWorkspaceBoardColumnName(client, {
-          id: opts.input.id,
-          name_: opts.input.name_,
-        })
-      );
-    }),
+  createWorkspaceBoardColumn: t.procedure.input(ZCreateWorkspaceBoardColumn).mutation(async (opts) => {
+    await withTransaction((client) =>
+      createWorkspaceBoardColumn(client, {
+        workspace_board_id: opts.input.workspace_board_id,
+        name_: opts.input.name_,
+        column_type: opts.input.column_type,
+        workspace_board_group_id: opts.input.workspace_board_group_id,
+      })
+    );
+  }),
+  getWorkspaceBoardColumns: t.procedure.input(ZGetWorkspaceBoardColumns).query(async (opts) => {
+    return await withTransaction((client) =>
+      getWorkspaceBoardColumns(client, {
+        workspace_board_id: opts.input.workspace_board_id,
+      })
+    );
+  }),
+  deleteWorkspaceBoardColumn: t.procedure.input(ZDeleteWorkspaceBoardColumn).mutation(async (opts) => {
+    return await withTransaction((client) =>
+      deleteWorkspaceBoardColumn(client, {
+        id: opts.input.id,
+        workspace_board_id: opts.input.workspace_board_id,
+      })
+    );
+  }),
+  setGroupColumnName: t.procedure.input(ZSetWorkspaceBoardColumnName).mutation(async (opts) => {
+    return await withTransaction((client) =>
+      setWorkspaceBoardColumnName(client, {
+        id: opts.input.id,
+        name_: opts.input.name_,
+      })
+    );
+  }),
 });

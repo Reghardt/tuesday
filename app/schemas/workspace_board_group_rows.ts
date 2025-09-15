@@ -1,9 +1,5 @@
 import z from "zod";
-import {
-  getRowId,
-  withDbErrorHandling,
-  withTransaction,
-} from "~/utils/pool.server";
+import { getRowId, withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 import { getWorkspaceBoardColumns } from "./workspace_board_columns";
 import { createWorkspaceBoardCell } from "./workspace_board_cells";
@@ -16,7 +12,7 @@ import {
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
-import { getWorkspaceBoardGroup } from "./workspace_board_groups";
+import { getWorkspaceBoardGroup, ZWorkspaceBoardGroup } from "./workspace_board_groups";
 
 export const ZWorkspaceBoardGroupRows = z.object({
   id: z.number(),
@@ -31,10 +27,7 @@ const ZGetWorkspaceBoardGroupRowsNextPos = ZWorkspaceBoardGroupRows.pick({
 });
 const getWorkspaceBoardGroupRowsNextPos = withDbErrorHandling(
   "getGroupRowsNextColumn",
-  async (
-    client,
-    values: z.infer<typeof ZGetWorkspaceBoardGroupRowsNextPos>
-  ) => {
+  async (client, values: z.infer<typeof ZGetWorkspaceBoardGroupRowsNextPos>) => {
     const res = await client.query(
       `
         SELECT COALESCE(MAX(pos), -1) + 1 as next_pos
@@ -44,8 +37,7 @@ const getWorkspaceBoardGroupRowsNextPos = withDbErrorHandling(
       [values.workspace_board_group_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
-      .next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
   }
 );
 
@@ -77,53 +69,37 @@ const createWorkspaceBoardGroupRow = withDbErrorHandling(
       workspace_board_id: workspace_board_group.workspace_board_id,
     });
     for (let i = 0; i < workspace_board_columns.length; i++) {
-      if (
-        workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.text
-      ) {
+      if (workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.text) {
         await createWorkspaceBoardCell(client, {
           workspace_board_group_row_id: group_row_id,
           workspace_board_column_id: workspace_board_columns[i].id,
           content: textColumnTypeCodec.encode(""),
         });
-      } else if (
-        workspace_board_columns[i].column_type ===
-        ZEGroupColumnTypes.enum.number_
-      ) {
+      } else if (workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.number_) {
         await createWorkspaceBoardCell(client, {
           workspace_board_group_row_id: group_row_id,
           workspace_board_column_id: workspace_board_columns[i].id,
           content: numberColumnTypeCodec.encode(0),
         });
-      } else if (
-        workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.date
-      ) {
+      } else if (workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.date) {
         await createWorkspaceBoardCell(client, {
           workspace_board_group_row_id: group_row_id,
           workspace_board_column_id: workspace_board_columns[i].id,
           content: dateColumnTypeCodec.encode(null),
         });
-      } else if (
-        workspace_board_columns[i].column_type ===
-        ZEGroupColumnTypes.enum.status
-      ) {
+      } else if (workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.status) {
         await createWorkspaceBoardCell(client, {
           workspace_board_group_row_id: group_row_id,
           workspace_board_column_id: workspace_board_columns[i].id,
           content: statusColumnTypeCodec.encode(null),
         });
-      } else if (
-        workspace_board_columns[i].column_type ===
-        ZEGroupColumnTypes.enum.priority
-      ) {
+      } else if (workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.priority) {
         await createWorkspaceBoardCell(client, {
           workspace_board_group_row_id: group_row_id,
           workspace_board_column_id: workspace_board_columns[i].id,
           content: priorityColumnTypeCodec.encode(null),
         });
-      } else if (
-        workspace_board_columns[i].column_type ===
-        ZEGroupColumnTypes.enum.people
-      ) {
+      } else if (workspace_board_columns[i].column_type === ZEGroupColumnTypes.enum.people) {
         await createWorkspaceBoardCell(client, {
           workspace_board_group_row_id: group_row_id,
           workspace_board_column_id: workspace_board_columns[i].id,
@@ -134,19 +110,19 @@ const createWorkspaceBoardGroupRow = withDbErrorHandling(
   }
 );
 
-const ZGetWorkspaceBoardGroupRows = ZWorkspaceBoardGroupRows.pick({
-  workspace_board_group_id: true,
-});
-export const getWorkspaceBoardGroupRows = withDbErrorHandling(
-  "getGroupRows",
-  async (client, values: z.infer<typeof ZGetWorkspaceBoardGroupRows>) => {
-    const res = await client.query(
-      `SELECT * FROM workspace_board_group_rows WHERE workspace_board_group_id = $1`,
-      [values.workspace_board_group_id]
-    );
-    return ZWorkspaceBoardGroupRows.array().parse(res.rows);
-  }
-);
+// const ZGetWorkspaceBoardGroupRows = ZWorkspaceBoardGroupRows.pick({
+//   workspace_board_group_id: true,
+// });
+// export const getWorkspaceBoardGroupRows = withDbErrorHandling(
+//   "getGroupRows",
+//   async (client, values: z.infer<typeof ZGetWorkspaceBoardGroupRows>) => {
+//     const res = await client.query(
+//       `SELECT * FROM workspace_board_group_rows WHERE workspace_board_group_id = $1`,
+//       [values.workspace_board_group_id]
+//     );
+//     return ZWorkspaceBoardGroupRows.array().parse(res.rows);
+//   }
+// );
 
 const ZDeleteWorkspaceBoardGroupRow = ZWorkspaceBoardGroupRows.pick({
   id: true,
@@ -155,41 +131,27 @@ const ZDeleteWorkspaceBoardGroupRow = ZWorkspaceBoardGroupRows.pick({
 const deleteWorkspaceBoardGroupRow = withDbErrorHandling(
   "deleteWorkspaceBoardGroupRow",
   async (client, values: z.infer<typeof ZDeleteWorkspaceBoardGroupRow>) => {
-    await client.query(
-      `DELETE FROM workspace_board_group_rows WHERE id = $1 AND workspace_board_group_id = $2`,
-      [values.id, values.workspace_board_group_id]
-    );
+    await client.query(`DELETE FROM workspace_board_group_rows WHERE id = $1 AND workspace_board_group_id = $2`, [
+      values.id,
+      values.workspace_board_group_id,
+    ]);
   }
 );
 
 export const workspaceBoardGroupRowsRouter = t.router({
-  createWorkspaceBoardGroupRow: t.procedure
-    .input(ZCreateWorkspaceBoardGroupRow)
-    .mutation(async (opts) => {
-      await withTransaction(async (client) => {
-        await createWorkspaceBoardGroupRow(client, {
-          workspace_board_group_id: opts.input.workspace_board_group_id,
-        });
+  createWorkspaceBoardGroupRow: t.procedure.input(ZCreateWorkspaceBoardGroupRow).mutation(async (opts) => {
+    await withTransaction(async (client) => {
+      await createWorkspaceBoardGroupRow(client, {
+        workspace_board_group_id: opts.input.workspace_board_group_id,
       });
-    }),
-  getGroupRows: t.procedure
-    .input(ZGetWorkspaceBoardGroupRows)
-    .query(async (opts) => {
-      return await withTransaction(async (client) => {
-        return getWorkspaceBoardGroupRows(client, {
-          workspace_board_group_id: opts.input.workspace_board_group_id,
-        });
+    });
+  }),
+  deleteGroupRow: t.procedure.input(ZDeleteWorkspaceBoardGroupRow).mutation(async (opts) => {
+    await withTransaction(async (client) => {
+      await deleteWorkspaceBoardGroupRow(client, {
+        id: opts.input.id,
+        workspace_board_group_id: opts.input.workspace_board_group_id,
       });
-    }),
-
-  deleteGroupRow: t.procedure
-    .input(ZDeleteWorkspaceBoardGroupRow)
-    .mutation(async (opts) => {
-      await withTransaction(async (client) => {
-        await deleteWorkspaceBoardGroupRow(client, {
-          id: opts.input.id,
-          workspace_board_group_id: opts.input.workspace_board_group_id,
-        });
-      });
-    }),
+    });
+  }),
 });
