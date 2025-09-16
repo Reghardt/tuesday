@@ -78,10 +78,20 @@ CHECK (
 );
 
 CREATE TABLE IF NOT EXISTS cells(
+    id SERIAL PRIMARY KEY,
     row_id INTEGER NOT NULL REFERENCES rows(id) ON DELETE CASCADE,
     column_id INTEGER NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
     content JSONB NOT NULL,
-    PRIMARY KEY (row_id, column_id) -- one cell per intersection
+    UNIQUE (row_id, column_id) -- one cell per intersection
+);
+
+CREATE TABLE IF NOT EXISTS updates(
+    id SERIAL PRIMARY KEY,
+    cell_id INTEGER NOT NULL REFERENCES cells(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    user_id INTEGER NOT NULL REFERENCES user(id), -- user should not be able to be deleted if they wrote an update
+    note TEXT
 );
 
 
