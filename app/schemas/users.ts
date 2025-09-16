@@ -2,7 +2,7 @@ import z from "zod";
 import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 
-const ZUser = z.object({
+export const ZUser = z.object({
   email: z.email(),
   id: z.string(),
   name: z.string(),

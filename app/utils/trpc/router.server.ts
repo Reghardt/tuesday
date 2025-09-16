@@ -8,6 +8,7 @@ import { statusesRouter } from "~/schemas/statuses";
 import { prioritiesRouter } from "~/schemas/priorities";
 import { usersRouter } from "~/schemas/users";
 import { boardsRouter } from "~/schemas/boards";
+import { updatesRouter } from "~/schemas/updates";
 
 export const appRouter = t.router({
   workspaces: workspacesRouter,
@@ -19,6 +20,7 @@ export const appRouter = t.router({
   statuses: statusesRouter,
   priorities: prioritiesRouter,
   users: usersRouter,
+  updates: updatesRouter,
 });
 
 export type AppRouter = typeof appRouter;

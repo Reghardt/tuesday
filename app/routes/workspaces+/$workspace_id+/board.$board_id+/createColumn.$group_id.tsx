@@ -115,7 +115,19 @@ export default function Component({ params }: Route.ComponentProps) {
             <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Timeline</button>
             <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Tags</button>
             <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Checkbox</button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Updates</button>
+            <button
+              onClick={() => {
+                createColumnMutation.mutate({
+                  name_: "Updates",
+                  board_id: Number(params.board_id),
+                  column_type: ZEGroupColumnTypes.enum.updates,
+                  group_id: Number(params.group_id),
+                });
+              }}
+              className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
+            >
+              Updates
+            </button>
           </div>
         </div>
       </div>

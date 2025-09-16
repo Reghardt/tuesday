@@ -67,22 +67,19 @@ const getColumnsNextPos = withDbErrorHandling(
 const ZGetColumns = ZColumn.pick({
   board_id: true,
 });
-export const getColumns = withDbErrorHandling(
-  "getColumns",
-  async (client, values: z.infer<typeof ZGetColumns>) => {
-    const res = await client.query(
-      `
+export const getColumns = withDbErrorHandling("getColumns", async (client, values: z.infer<typeof ZGetColumns>) => {
+  const res = await client.query(
+    `
       SELECT
         *
       from columns as wbc
       where wbc.board_id = $1
       `,
-      [values.board_id]
-    );
+    [values.board_id]
+  );
 
-    return ZColumn.array().parse(res.rows);
-  }
-);
+  return ZColumn.array().parse(res.rows);
+});
 
 // const ZGetGroupColumn = ZColumn.pick({
 //   id: true,
@@ -179,6 +176,14 @@ export const createColumn = withDbErrorHandling(
           content: peopleColumnTypeCodec.encode([]),
         });
       }
+    } else if (values.column_type === ZEGroupColumnTypes.enum.updates) {
+      for (let i = 0; i < group_rows.length; i++) {
+        await createCell(client, {
+          row_id: group_rows[i].id,
+          column_id: column_id,
+          content: { updates: 0 },
+        });
+      }
     }
   }
 );
@@ -190,10 +195,7 @@ const ZDeleteColumn = ZColumn.pick({
 export const deleteColumn = withDbErrorHandling(
   "deleteColumn",
   async (client, values: z.infer<typeof ZDeleteColumn>) => {
-    await client.query("DELETE FROM columns WHERE id = $1 AND board_id = $2", [
-      values.id,
-      values.board_id,
-    ]);
+    await client.query("DELETE FROM columns WHERE id = $1 AND board_id = $2", [values.id, values.board_id]);
   }
 );
 
@@ -201,12 +203,9 @@ const ZSetColumnName = ZColumn.pick({
   id: true,
   name_: true,
 });
-const setColumnName = withDbErrorHandling(
-  "setColumnName",
-  async (client, values: z.infer<typeof ZSetColumnName>) => {
-    await client.query("UPDATE columns SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
-  }
-);
+const setColumnName = withDbErrorHandling("setColumnName", async (client, values: z.infer<typeof ZSetColumnName>) => {
+  await client.query("UPDATE columns SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
+});
 
 export const columnsRouter = t.router({
   createColumn: t.procedure.input(ZCreateColumn).mutation(async (opts) => {

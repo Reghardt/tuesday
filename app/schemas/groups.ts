@@ -16,16 +16,11 @@ export const ZGroup = z.object({
 const ZGetGroups = ZGroup.pick({
   board_id: true,
 });
-export const getGroups = withDbErrorHandling(
-  "getGroups",
-  async (client, values: z.infer<typeof ZGetGroups>) => {
-    const res = await client.query("SELECT * from groups WHERE board_id = $1", [
-      values.board_id,
-    ]);
+export const getGroups = withDbErrorHandling("getGroups", async (client, values: z.infer<typeof ZGetGroups>) => {
+  const res = await client.query("SELECT * from groups WHERE board_id = $1", [values.board_id]);
 
-    return ZGroup.array().parse(res.rows);
-  }
-);
+  return ZGroup.array().parse(res.rows);
+});
 
 const ZGetGroup = ZGroup.pick({
   id: true,
@@ -86,11 +81,9 @@ export const ZGroupCellExtended = ZCell.extend(
     pos: true,
   }).shape
 );
-const getGroupData = withDbErrorHandling(
-  "getGroupData",
-  async (client, values: z.infer<typeof ZGetGroupData>) => {
-    const res = await client.query(
-      `
+const getGroupData = withDbErrorHandling("getGroupData", async (client, values: z.infer<typeof ZGetGroupData>) => {
+  const res = await client.query(
+    `
       SELECT 
       wbgr.id,
       wbgr.group_id,
@@ -100,6 +93,7 @@ const getGroupData = withDbErrorHandling(
       COALESCE(
         JSON_AGG(
             JSON_BUILD_OBJECT(
+              'id', wbcl.id,
               'row_id', wbcl.row_id,
               'column_id', wbcl.column_id,
               'content', wbcl.content,
@@ -119,28 +113,25 @@ const getGroupData = withDbErrorHandling(
       GROUP BY wbgr.id, wbgr.group_id, wbgr.pos
       ORDER BY wbgr.pos ASC
       `,
-      [values.id]
-    );
+    [values.id]
+  );
 
-    const parsedRes = ZRows.extend({
-      cells: ZGroupCellExtended.array(),
-    })
-      .array()
-      .parse(res.rows);
+  const parsedRes = ZRows.extend({
+    cells: ZGroupCellExtended.array(),
+  })
+    .array()
+    .parse(res.rows);
 
-    console.log(parsedRes);
-    return parsedRes;
-  }
-);
+  console.log(parsedRes);
+  return parsedRes;
+});
 
 const ZGetRows = ZGroup.pick({
   board_id: true,
 });
-export const getRows = withDbErrorHandling(
-  "getRows",
-  async (client, values: z.infer<typeof ZGetRows>) => {
-    const res = await client.query(
-      `
+export const getRows = withDbErrorHandling("getRows", async (client, values: z.infer<typeof ZGetRows>) => {
+  const res = await client.query(
+    `
       SELECT
         wbgr.id,
         wbgr.group_id,
@@ -151,14 +142,13 @@ export const getRows = withDbErrorHandling(
       JOIN rows AS wbgr ON wbgr.group_id = groups.id
       WHERE board_id = $1
       `,
-      [values.board_id]
-    );
+    [values.board_id]
+  );
 
-    console.log("@@@@@@@@@@@@@@@@@", res.rows);
+  console.log("@@@@@@@@@@@@@@@@@", res.rows);
 
-    return ZRows.array().parse(res.rows);
-  }
-);
+  return ZRows.array().parse(res.rows);
+});
 
 export const groupsRouter = t.router({
   getGroups: t.procedure.input(ZGetGroups).query(async (opts) => {
