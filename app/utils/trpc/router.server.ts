@@ -1,23 +1,23 @@
 import { workspacesRouter } from "~/schemas/workspace";
 import { t } from "./trpc.server";
-import { workspaceBoardGroupsRouter } from "~/schemas/workspace_board_groups";
-import { workspaceBoardColumnsRouter } from "~/schemas/workspace_board_columns";
-import { workspaceBoardGroupRowsRouter } from "~/schemas/workspace_board_group_rows";
-import { groupCellsRouter } from "~/schemas/workspace_board_cells";
-import { workspaceStatusesRouter } from "~/schemas/workspace_statuses";
-import { workspacePrioritiesRouter } from "~/schemas/workspace_priorities";
+import { groupsRouter } from "~/schemas/groups";
+import { columnsRouter } from "~/schemas/columns";
+import { rowsRouter } from "~/schemas/rows";
+import { cellsRouter } from "~/schemas/cells";
+import { statusesRouter } from "~/schemas/statuses";
+import { prioritiesRouter } from "~/schemas/priorities";
 import { usersRouter } from "~/schemas/users";
-import { workspaceBoardsRouter } from "~/schemas/workspace_boards";
+import { boardsRouter } from "~/schemas/boards";
 
 export const appRouter = t.router({
   workspaces: workspacesRouter,
-  workspaceBoards: workspaceBoardsRouter,
-  workspaceBoardsGroups: workspaceBoardGroupsRouter,
-  workspaceBoardColumns: workspaceBoardColumnsRouter,
-  workspaceBoardGroupRows: workspaceBoardGroupRowsRouter,
-  groupCells: groupCellsRouter,
-  workspaceStatuses: workspaceStatusesRouter,
-  workspacePriorities: workspacePrioritiesRouter,
+  boards: boardsRouter,
+  groups: groupsRouter,
+  columns: columnsRouter,
+  rows: rowsRouter,
+  cells: cellsRouter,
+  statuses: statusesRouter,
+  priorities: prioritiesRouter,
   users: usersRouter,
 });
 

@@ -20,7 +20,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export default function Component({ loaderData }: Route.ComponentProps) {
-  const [workspaceBoardName, setWorkspaceBoardName] = useState("");
+  const [boardName, setBoardName] = useState("");
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -30,22 +30,22 @@ export default function Component({ loaderData }: Route.ComponentProps) {
   //   })
   // );
 
-  const createWorkspaceBoardMutation = useMutation(
-    trpc.workspaceBoards.createWorkspaceBoard.mutationOptions({
+  const createBoardMutation = useMutation(
+    trpc.boards.createBoard.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceBoards.getGWorkspaceBoards.queryKey({
+          queryKey: trpc.boards.getGBoards.queryKey({
             workspace_id: loaderData.workspace.id,
           }),
         });
 
-        setWorkspaceBoardName("");
+        setBoardName("");
       },
     })
   );
 
-  const getWorkspaceBoardsQuery = useQuery(
-    trpc.workspaceBoards.getGWorkspaceBoards.queryOptions({
+  const getBoardsQuery = useQuery(
+    trpc.boards.getGBoards.queryOptions({
       workspace_id: loaderData.workspace.id,
     })
   );
@@ -56,13 +56,13 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           <div className="">
             <div className=" text-lg">{loaderData.workspace.name_}</div>
             <div>Workspace Boards</div>
-            {(getWorkspaceBoardsQuery.data?.length ?? 0) === 0 ? (
+            {(getBoardsQuery.data?.length ?? 0) === 0 ? (
               <div className="text-center w-full text-sm text-gray-400">
                 No Boards
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {getWorkspaceBoardsQuery.data?.map((board) => {
+                {getBoardsQuery.data?.map((board) => {
                   return (
                     <NavLink
                       className={({ isActive }) =>
@@ -83,15 +83,15 @@ export default function Component({ loaderData }: Route.ComponentProps) {
             <input
               type="text"
               className="border"
-              value={workspaceBoardName}
-              onChange={(e) => setWorkspaceBoardName(e.target.value)}
+              value={boardName}
+              onChange={(e) => setBoardName(e.target.value)}
             />
             <button
               className="bg-blue-800"
               onClick={() =>
-                createWorkspaceBoardMutation.mutate({
+                createBoardMutation.mutate({
                   workspace_id: loaderData.workspace.id,
-                  name_: workspaceBoardName,
+                  name_: boardName,
                 })
               }
             >

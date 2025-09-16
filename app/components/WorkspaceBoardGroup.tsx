@@ -6,50 +6,50 @@ import { Cell } from "./Cell";
 import ColumnHeading from "./ColumnHeading";
 
 const WorkspaceBoardGroup: FC<{
-  workspace_board_group_id: number;
-  workspace_board_id: number;
-}> = ({ workspace_board_group_id, workspace_board_id }) => {
+  group_id: number;
+  board_id: number;
+}> = ({ group_id, board_id }) => {
   const navigate = useNavigate();
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const getGroupColumnsQuery = useQuery(
-    trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryOptions({
-      workspace_board_id: workspace_board_id,
+    trpc.columns.getColumns.queryOptions({
+      board_id: board_id,
     })
   );
 
-  const getWorkspaceBoardGroupDataQuery = useQuery(
-    trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryOptions({
-      id: workspace_board_group_id,
+  const getGroupDataQuery = useQuery(
+    trpc.groups.getGroupData.queryOptions({
+      id: group_id,
     })
   );
 
-  const createWorkspaceBoardGroupRowMutation = useMutation(
-    trpc.workspaceBoardGroupRows.createWorkspaceBoardGroupRow.mutationOptions({
+  const createRowMutation = useMutation(
+    trpc.rows.createRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey:
-            trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryKey(),
+            trpc.groups.getGroupData.queryKey(),
         });
       },
     })
   );
 
   const deleteRowMutation = useMutation(
-    trpc.workspaceBoardGroupRows.deleteGroupRow.mutationOptions({
+    trpc.rows.deleteGroupRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey:
-            trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryKey(),
+            trpc.groups.getGroupData.queryKey(),
         });
       },
     })
   );
 
   function createTable(
-    rows: typeof getWorkspaceBoardGroupDataQuery.data,
+    rows: typeof getGroupDataQuery.data,
     columns: typeof getGroupColumnsQuery.data
   ) {
     return (
@@ -68,7 +68,7 @@ const WorkspaceBoardGroup: FC<{
                 <button
                   className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
                   onClick={() =>
-                    navigate(`createColumn/${workspace_board_group_id}`)
+                    navigate(`createColumn/${group_id}`)
                   }
                 >
                   Create Column
@@ -85,12 +85,12 @@ const WorkspaceBoardGroup: FC<{
                     // console.log(cell.content);
                     return (
                       <td
-                        key={`${cell.workspace_board_column_id}_${cell.workspace_board_group_row_id}`}
+                        key={`${cell.column_id}_${cell.row_id}`}
                         className="text-left border"
                       >
                         <Cell
                           cell={cell}
-                          workspace_id={workspace_board_group_id}
+                          workspace_id={group_id}
                         />
                       </td>
                     );
@@ -102,8 +102,8 @@ const WorkspaceBoardGroup: FC<{
                         onClick={() =>
                           deleteRowMutation.mutate({
                             id: row.id,
-                            workspace_board_group_id:
-                              row.workspace_board_group_id,
+                            group_id:
+                              row.group_id,
                           })
                         }
                         className="text-red-700 hover:bg-red-300 w-30"
@@ -128,7 +128,7 @@ const WorkspaceBoardGroup: FC<{
       <div className="flex gap-2"></div>
 
       {createTable(
-        getWorkspaceBoardGroupDataQuery.data,
+        getGroupDataQuery.data,
         getGroupColumnsQuery.data
       )}
 
@@ -137,8 +137,8 @@ const WorkspaceBoardGroup: FC<{
           <button
             className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
             onClick={() => {
-              createWorkspaceBoardGroupRowMutation.mutate({
-                workspace_board_group_id: workspace_board_group_id,
+              createRowMutation.mutate({
+                group_id: group_id,
               });
             }}
           >

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
-import type { Route } from "./+types/setCellStatus.$group_column_id.$group_row_id";
+import type { Route } from "./+types/setCellStatus.$column_id.$row_id";
 import { useState } from "react";
 
 export default function Component({ params }: Route.ComponentProps) {
@@ -13,11 +13,11 @@ export default function Component({ params }: Route.ComponentProps) {
 
   console.log(getUsersQuery.data);
 
-  const createWorkspaceStatusMutation = useMutation(
-    trpc.workspaceStatuses.createWorkspaceStatus.mutationOptions({
+  const createStatusMutation = useMutation(
+    trpc.statuses.createStatus.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceStatuses.getWorkspaceStatuses.queryKey({
+          queryKey: trpc.statuses.getStatuses.queryKey({
             workspace_id: Number(params.workspace_id),
           }),
         });
@@ -25,14 +25,14 @@ export default function Component({ params }: Route.ComponentProps) {
     })
   );
 
-  const setGroupCellContentMutation = useMutation(
-    trpc.groupCells.seteWorkspaceBoardCellContent.mutationOptions({
+  const setCellContentMutation = useMutation(
+    trpc.cells.setCellContent.mutationOptions({
       onSuccess: () => {
         navigate(-1);
         queryClient.invalidateQueries({
-          queryKey: trpc.groupCells.getWorkspaceBoardCell.queryKey({
-            workspace_board_group_row_id: Number(params.group_row_id),
-            workspace_board_column_id: Number(params.group_column_id),
+          queryKey: trpc.cells.getCell.queryKey({
+            row_id: Number(params.row_id),
+            column_id: Number(params.column_id),
           }),
         });
       },
@@ -54,9 +54,9 @@ export default function Component({ params }: Route.ComponentProps) {
             return (
               <button
                 onClick={() => {
-                  setGroupCellContentMutation.mutate({
-                    workspace_board_group_row_id: Number(params.group_row_id),
-                    workspace_board_column_id: Number(params.group_column_id),
+                  setCellContentMutation.mutate({
+                    row_id: Number(params.row_id),
+                    column_id: Number(params.column_id),
                     content: { user_ids: [user.id] },
                   });
                 }}
@@ -89,7 +89,7 @@ export default function Component({ params }: Route.ComponentProps) {
 
             <button
               onClick={() =>
-                createWorkspaceStatusMutation.mutate({
+                createStatusMutation.mutate({
                   workspace_id: Number(params.workspace_id),
                   name_: statusName,
                   color: color,

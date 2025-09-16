@@ -1,32 +1,30 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { FC } from "react";
 import type z from "zod";
-import type { ZWorkspaceBoardColumn } from "~/schemas/workspace_board_columns";
+import type { ZColumn } from "~/schemas/columns";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const ColumnHeading: FC<{ column: z.infer<typeof ZWorkspaceBoardColumn> }> = ({
-  column,
-}) => {
+const ColumnHeading: FC<{ column: z.infer<typeof ZColumn> }> = ({ column, }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
   const deleteColumnMutation = useMutation(
-    trpc.workspaceBoardColumns.deleteWorkspaceBoardColumn.mutationOptions({
+    trpc.columns.deleteColumn.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey:
-            trpc.workspaceBoardColumns.getWorkspaceBoardColumns.queryKey(),
+            trpc.columns.getColumns.queryKey(),
         });
         queryClient.invalidateQueries({
           queryKey:
-            trpc.workspaceBoardsGroups.getWorkspaceBoardGroupData.queryKey(),
+            trpc.groups.getGroupData.queryKey(),
         });
       },
     })
   );
 
   const setGroupColumnName = useMutation(
-    trpc.workspaceBoardColumns.setGroupColumnName.mutationOptions()
+    trpc.columns.setGroupColumnName.mutationOptions()
   );
 
   return (
@@ -47,7 +45,7 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZWorkspaceBoardColumn> }> = ({
         onClick={() => {
           deleteColumnMutation.mutate({
             id: column.id,
-            workspace_board_id: column.workspace_board_id,
+            board_id: column.board_id,
           });
         }}
       >

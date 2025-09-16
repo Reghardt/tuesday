@@ -1,26 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
-import type { Route } from "./+types/setCellStatus.$group_column_id.$group_row_id";
 import { useState } from "react";
-import { statusColumnTypeCodec } from "~/enums/groupColumnTypes";
+import type { Route } from "./+types/setCellPriority.$column_id.$row_id";
+import { priorityColumnTypeCodec } from "~/enums/groupColumnTypes";
 
 export default function Component({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const getWorkspaceStatusesQuery = useQuery(
-    trpc.workspaceStatuses.getWorkspaceStatuses.queryOptions({
+  const getPrioritiesQuery = useQuery(
+    trpc.priorities.getPriorities.queryOptions({
       workspace_id: Number(params.workspace_id),
     })
   );
 
-  const createWorkspaceStatusMutation = useMutation(
-    trpc.workspaceStatuses.createWorkspaceStatus.mutationOptions({
+  const createPrioritiesMutation = useMutation(
+    trpc.priorities.createPriorities.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.workspaceStatuses.getWorkspaceStatuses.queryKey({
+          queryKey: trpc.priorities.getPriorities.queryKey({
             workspace_id: Number(params.workspace_id),
           }),
         });
@@ -28,23 +28,23 @@ export default function Component({ params }: Route.ComponentProps) {
     })
   );
 
-  const setGroupCellContentMutation = useMutation(
-    trpc.groupCells.seteWorkspaceBoardCellContent.mutationOptions({
+  const setCellContentMutation = useMutation(
+    trpc.cells.setCellContent.mutationOptions({
       onSuccess: () => {
         navigate(-1);
         queryClient.invalidateQueries({
-          queryKey: trpc.groupCells.getWorkspaceBoardCell.queryKey({
-            workspace_board_group_row_id: Number(params.group_row_id),
-            workspace_board_column_id: Number(params.group_column_id),
+          queryKey: trpc.cells.getCell.queryKey({
+            row_id: Number(params.row_id),
+            column_id: Number(params.column_id),
           }),
         });
       },
     })
   );
 
-  console.log(getWorkspaceStatusesQuery.data);
+  console.log(getPrioritiesQuery.data);
 
-  const [statusName, setStatusName] = useState("");
+  const [statusName, setPrioritiesName] = useState("");
   const [color, setColor] = useState("#03fc28");
 
   return (
@@ -52,23 +52,23 @@ export default function Component({ params }: Route.ComponentProps) {
       <div className=" bg-black p-2">
         <div>
           <button onClick={() => navigate(-1)}>Cancel</button>
-          <div>Status</div>
+          <div>Priorities</div>
 
-          {getWorkspaceStatusesQuery.data?.map((status) => {
-            console.log(status);
+          {getPrioritiesQuery.data?.map((priority) => {
+            console.log(priority);
             return (
               <button
                 onClick={() => {
-                  setGroupCellContentMutation.mutate({
-                    workspace_board_group_row_id: Number(params.group_row_id),
-                    workspace_board_column_id: Number(params.group_column_id),
-                    content: statusColumnTypeCodec.encode(status.id),
+                  setCellContentMutation.mutate({
+                    row_id: Number(params.row_id),
+                    column_id: Number(params.column_id),
+                    content: priorityColumnTypeCodec.encode(priority.id),
                   });
                 }}
                 className={`w-full`}
-                style={{ background: status.color }}
+                style={{ background: priority.color }}
               >
-                {status.name_}
+                {priority.name_}
               </button>
             );
           })}
@@ -79,7 +79,7 @@ export default function Component({ params }: Route.ComponentProps) {
               <input
                 type="text"
                 value={statusName}
-                onChange={(e) => setStatusName(e.target.value)}
+                onChange={(e) => setPrioritiesName(e.target.value)}
                 className="border"
               />
             </div>
@@ -95,7 +95,7 @@ export default function Component({ params }: Route.ComponentProps) {
 
             <button
               onClick={() =>
-                createWorkspaceStatusMutation.mutate({
+                createPrioritiesMutation.mutate({
                   workspace_id: Number(params.workspace_id),
                   name_: statusName,
                   color: color,

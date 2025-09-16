@@ -11,77 +11,77 @@ CREATE TABLE IF NOT EXISTS workspaces(
     name_ TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS workspace_boards(
+CREATE TABLE IF NOT EXISTS boards(
     id SERIAL PRIMARY KEY,
     workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name_ TEXT NOT NULL,
     pos INTEGER NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS workspace_board_statuses(
+CREATE TABLE IF NOT EXISTS statuses(
     id SERIAL PRIMARY KEY,
-    workspace_board_id INTEGER NOT NULL REFERENCES workspace_boards(id) ON DELETE CASCADE,
+    board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     name_ TEXT NOT NULL,
     color TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS workspace_board_priorities(
+CREATE TABLE IF NOT EXISTS priorities(
     id SERIAL PRIMARY KEY,
-    workspace_board_id INTEGER NOT NULL REFERENCES workspace_boards(id) ON DELETE CASCADE,
+    board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     name_ TEXT NOT NULL,
     color TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS workspace_board_groups(
+CREATE TABLE IF NOT EXISTS groups(
     id SERIAL PRIMARY KEY,
-    workspace_board_id INTEGER NOT NULL REFERENCES workspace_boards(id) ON DELETE CASCADE,
+    board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     name_ TEXT NOT NULL,
     pos INTEGER NOT NULL,
-    UNIQUE(workspace_board_id, pos)
+    UNIQUE(board_id, pos)
 );
 
 
-CREATE TABLE IF NOT EXISTS workspace_board_columns(
+CREATE TABLE IF NOT EXISTS columns(
     id SERIAL PRIMARY KEY,
-    workspace_board_id INTEGER NOT NULL REFERENCES workspace_boards(id) ON DELETE CASCADE,
+    board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     level INTEGER NOT NULL CHECK (level >= 0),
     name_ TEXT NOT NULL,
     column_type INTEGER NOT NULL,
     type_properties JSONB NOT NULL,
     pos INTEGER NOT NULL,
-    UNIQUE(workspace_board_id, level, pos) -- prevents duplicate positions and levels
+    UNIQUE(board_id, level, pos) -- prevents duplicate positions and levels
 );
 
-CREATE TABLE IF NOT EXISTS workspace_board_group_rows(
+CREATE TABLE IF NOT EXISTS rows(
     id SERIAL PRIMARY KEY,
-    workspace_board_group_id INTEGER NOT NULL REFERENCES workspace_board_groups(id) ON DELETE CASCADE,
+    group_id INTEGER NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
     level INTEGER NOT NULL CHECK (level >= 0),
     pos INTEGER NOT NULL,
-    parent_workspace_board_group_row_id INTEGER REFERENCES workspace_board_group_rows(id) ON DELETE CASCADE,
-    UNIQUE (workspace_board_group_id, level, pos) -- prevent duplicate positions and levels
+    parent_row_id INTEGER REFERENCES rows(id) ON DELETE CASCADE,
+    UNIQUE (group_id, level, pos) -- prevent duplicate positions and levels
 );
 
 -- child row is 1 level deeper than parent
-ALTER TABLE workspace_board_group_rows 
+ALTER TABLE rows 
 ADD CONSTRAINT check_parent_level 
 CHECK (
-    parent_workspace_board_group_row_id IS NULL OR 
-    level = (SELECT level + 1 FROM workspace_board_group_rows p WHERE p.id = parent_workspace_board_group_row_id)
+    parent_row_id IS NULL OR 
+    level = (SELECT level + 1 FROM rows p WHERE p.id = parent_row_id)
 )
 
 -- Level 0 rows should have no parent
-ALTER TABLE workspace_board_group_rows 
+ALTER TABLE rows 
 ADD CONSTRAINT check_level_zero_no_parent 
 CHECK (
-    (level = 0 AND parent_workspace_board_group_row_id IS NULL) OR 
-    (level > 0 AND parent_workspace_board_group_row_id IS NOT NULL)
+    (level = 0 AND parent_row_id IS NULL) OR 
+    (level > 0 AND parent_row_id IS NOT NULL)
 );
 
-CREATE TABLE IF NOT EXISTS workspace_board_cells(
-    workspace_board_group_row_id INTEGER NOT NULL REFERENCES workspace_board_group_rows(id) ON DELETE CASCADE,
-    workspace_board_column_id INTEGER NOT NULL REFERENCES workspace_board_columns(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS cells(
+    row_id INTEGER NOT NULL REFERENCES rows(id) ON DELETE CASCADE,
+    column_id INTEGER NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
     content JSONB NOT NULL,
-    PRIMARY KEY (workspace_board_group_row_id, workspace_board_column_id) -- one cell per intersection
+    PRIMARY KEY (row_id, column_id) -- one cell per intersection
 );
 
 
@@ -93,7 +93,3 @@ create table "session" ("id" text not null primary key, "expiresAt" timestamp no
 create table "account" ("id" text not null primary key, "accountId" text not null, "providerId" text not null, "userId" text not null references "user" ("id") on delete cascade, "accessToken" text, "refreshToken" text, "idToken" text, "accessTokenExpiresAt" timestamp, "refreshTokenExpiresAt" timestamp, "scope" text, "password" text, "createdAt" timestamp default CURRENT_TIMESTAMP not null, "updatedAt" timestamp not null);
 
 create table "verification" ("id" text not null primary key, "identifier" text not null, "value" text not null, "expiresAt" timestamp not null, "createdAt" timestamp default CURRENT_TIMESTAMP not null, "updatedAt" timestamp default CURRENT_TIMESTAMP not null);
-
-
-
-

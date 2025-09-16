@@ -6,25 +6,25 @@ import WorkspaceBoardGroup from "~/components/WorkspaceBoardGroup";
 import { Outlet } from "react-router";
 
 export default function Component({ params }: Route.ComponentProps) {
-  const [workspaceGroupName, setWorkspaceGroupName] = useState("");
+  const [groupName, setGroupName] = useState("");
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const getWorkspaceBoardGroups = useQuery(
-    trpc.workspaceBoardsGroups.getWorkspaceBoardGroups.queryOptions({
-      workspace_board_id: Number(params.board_id),
+  const getGroups = useQuery(
+    trpc.groups.getGroups.queryOptions({
+      board_id: Number(params.board_id),
     })
   );
 
-  const createWorkspaceBoardGroupMutation = useMutation(
-    trpc.workspaceBoardsGroups.createWorkspaceBoardGroup.mutationOptions({
+  const createGroupMutation = useMutation(
+    trpc.groups.createGroup.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey:
-            trpc.workspaceBoardsGroups.getWorkspaceBoardGroups.queryKey(),
+            trpc.groups.getGroups.queryKey(),
         });
 
-        setWorkspaceGroupName("");
+        setGroupName("");
       },
     })
   );
@@ -36,13 +36,13 @@ export default function Component({ params }: Route.ComponentProps) {
           <div>Workspace</div>
 
           <div className="flex flex-col gap-2">
-            {getWorkspaceBoardGroups.data?.map((group) => {
+            {getGroups.data?.map((group) => {
               return (
                 <div key={group.id}>
                   <div>{group.name_}</div>
                   <WorkspaceBoardGroup
-                    workspace_board_group_id={group.id}
-                    workspace_board_id={Number(params.board_id)}
+                    group_id={group.id}
+                    board_id={Number(params.board_id)}
                   />
                 </div>
               );
@@ -53,16 +53,16 @@ export default function Component({ params }: Route.ComponentProps) {
             <input
               className="border border-white"
               type="text"
-              value={workspaceGroupName}
-              onChange={(e) => setWorkspaceGroupName(e.target.value)}
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
             ></input>
             <button
               className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
               type="button"
               onClick={() =>
-                createWorkspaceBoardGroupMutation.mutate({
-                  workspace_board_id: Number(params.board_id),
-                  name_: workspaceGroupName,
+                createGroupMutation.mutate({
+                  board_id: Number(params.board_id),
+                  name_: groupName,
                 })
               }
             >

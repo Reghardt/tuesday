@@ -11,7 +11,7 @@ import {
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
-import type { ZGroupCellExtended } from "~/schemas/workspace_board_groups";
+import type { ZGroupCellExtended } from "~/schemas/groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
 const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
@@ -19,15 +19,15 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
 }) => {
   const trpc = useTRPC();
   const useSetGroupCellContent = useMutation(
-    trpc.groupCells.seteWorkspaceBoardCellContent.mutationOptions()
+    trpc.cells.setCellContent.mutationOptions()
   );
 
   return (
     <input
       onChange={(e) =>
         useSetGroupCellContent.mutate({
-          workspace_board_group_row_id: cell.workspace_board_group_row_id,
-          workspace_board_column_id: cell.workspace_board_column_id,
+          row_id: cell.row_id,
+          column_id: cell.column_id,
           content: textColumnTypeCodec.encode(e.target.value),
         })
       }
@@ -43,15 +43,15 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
 }) => {
   const trpc = useTRPC();
   const useSetGroupCellContent = useMutation(
-    trpc.groupCells.seteWorkspaceBoardCellContent.mutationOptions()
+    trpc.cells.setCellContent.mutationOptions()
   );
 
   return (
     <input
       onChange={(e) =>
         useSetGroupCellContent.mutate({
-          workspace_board_group_row_id: cell.workspace_board_group_row_id,
-          workspace_board_column_id: cell.workspace_board_column_id,
+          row_id: cell.row_id,
+          column_id: cell.column_id,
           content: numberColumnTypeCodec.encode(Number(e.target.value)),
         })
       }
@@ -67,15 +67,15 @@ const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
 }) => {
   const trpc = useTRPC();
   const useSetGroupCellContent = useMutation(
-    trpc.groupCells.seteWorkspaceBoardCellContent.mutationOptions()
+    trpc.cells.setCellContent.mutationOptions()
   );
 
   return (
     <input
       onChange={(e) => {
         useSetGroupCellContent.mutate({
-          workspace_board_group_row_id: cell.workspace_board_group_row_id,
-          workspace_board_column_id: cell.workspace_board_column_id,
+          row_id: cell.row_id,
+          column_id: cell.column_id,
           content: { value: e.target.value },
         });
       }}
@@ -94,16 +94,16 @@ const StatusCell: FC<{
   const navigate = useNavigate();
 
   const getCellQuery = useQuery({
-    ...trpc.groupCells.getWorkspaceBoardCell.queryOptions({
-      workspace_board_column_id: cell.workspace_board_column_id,
-      workspace_board_group_row_id: cell.workspace_board_group_row_id,
+    ...trpc.cells.getCell.queryOptions({
+      column_id: cell.column_id,
+      row_id: cell.row_id,
     }),
     initialData: cell,
     staleTime: 0,
   });
 
   const getWorkspaceStatusesQuery = useQuery(
-    trpc.workspaceStatuses.getWorkspaceStatuses.queryOptions({ workspace_id })
+    trpc.statuses.getStatuses.queryOptions({ workspace_id })
   );
 
   let text = "No Status";
@@ -124,7 +124,7 @@ const StatusCell: FC<{
     <button
       onClick={() => {
         navigate(
-          `setCellStatus/${cell.workspace_board_column_id}/${cell.workspace_board_group_row_id}`
+          `setCellStatus/${cell.column_id}/${cell.row_id}`
         );
       }}
       className="w-full h-full p-1"
@@ -143,16 +143,16 @@ const PriorityCell: FC<{
   const navigate = useNavigate();
 
   const getCellQuery = useQuery({
-    ...trpc.groupCells.getWorkspaceBoardCell.queryOptions({
-      workspace_board_column_id: cell.workspace_board_column_id,
-      workspace_board_group_row_id: cell.workspace_board_group_row_id,
+    ...trpc.cells.getCell.queryOptions({
+      column_id: cell.column_id,
+      row_id: cell.row_id,
     }),
     initialData: cell,
     staleTime: 0,
   });
 
   const getWorkspacePrioritiesQuery = useQuery(
-    trpc.workspacePriorities.getWorkspacePriorities.queryOptions({
+    trpc.priorities.getPriorities.queryOptions({
       workspace_id,
     })
   );
@@ -177,7 +177,7 @@ const PriorityCell: FC<{
     <button
       onClick={() => {
         navigate(
-          `setCellPriority/${cell.workspace_board_column_id}/${cell.workspace_board_group_row_id}`
+          `setCellPriority/${cell.column_id}/${cell.row_id}`
         );
       }}
       className="w-full h-full p-1"
@@ -196,9 +196,9 @@ const PeopleCell: FC<{
   const navigate = useNavigate();
 
   const getCellQuery = useQuery({
-    ...trpc.groupCells.getWorkspaceBoardCell.queryOptions({
-      workspace_board_column_id: cell.workspace_board_column_id,
-      workspace_board_group_row_id: cell.workspace_board_group_row_id,
+    ...trpc.cells.getCell.queryOptions({
+      column_id: cell.column_id,
+      row_id: cell.row_id,
     }),
     initialData: cell,
     staleTime: 0,
@@ -227,7 +227,7 @@ const PeopleCell: FC<{
     <button
       onClick={() => {
         navigate(
-          `setCellPeople/${cell.workspace_board_column_id}/${cell.workspace_board_group_row_id}`
+          `setCellPeople/${cell.column_id}/${cell.row_id}`
         );
       }}
       className="w-full h-full p-1"
