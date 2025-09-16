@@ -88,8 +88,8 @@ const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
 
 const StatusCell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
-  workspace_id: number;
-}> = ({ cell, workspace_id }) => {
+  board_id: number;
+}> = ({ cell, board_id }) => {
   const trpc = useTRPC();
   const navigate = useNavigate();
 
@@ -102,8 +102,8 @@ const StatusCell: FC<{
     staleTime: 0,
   });
 
-  const getWorkspaceStatusesQuery = useQuery(
-    trpc.statuses.getStatuses.queryOptions({ workspace_id })
+  const getStatusesQuery = useQuery(
+    trpc.statuses.getStatuses.queryOptions({ board_id })
   );
 
   let text = "No Status";
@@ -112,10 +112,10 @@ const StatusCell: FC<{
   const status_id = statusColumnTypeCodec.decode(getCellQuery.data?.content);
 
   if (status_id !== null) {
-    for (let i = 0; i < (getWorkspaceStatusesQuery.data?.length ?? 0); i++) {
-      if (status_id === getWorkspaceStatusesQuery.data![i].id) {
-        text = getWorkspaceStatusesQuery.data![i].name_;
-        color = getWorkspaceStatusesQuery.data![i].color;
+    for (let i = 0; i < (getStatusesQuery.data?.length ?? 0); i++) {
+      if (status_id === getStatusesQuery.data![i].id) {
+        text = getStatusesQuery.data![i].name_;
+        color = getStatusesQuery.data![i].color;
       }
     }
   }
@@ -123,9 +123,7 @@ const StatusCell: FC<{
   return (
     <button
       onClick={() => {
-        navigate(
-          `setCellStatus/${cell.column_id}/${cell.row_id}`
-        );
+        navigate(`setCellStatus/${cell.column_id}/${cell.row_id}`);
       }}
       className="w-full h-full p-1"
       style={{ background: color }}
@@ -137,8 +135,8 @@ const StatusCell: FC<{
 
 const PriorityCell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
-  workspace_id: number;
-}> = ({ cell, workspace_id }) => {
+  board_id: number;
+}> = ({ cell, board_id }) => {
   const trpc = useTRPC();
   const navigate = useNavigate();
 
@@ -151,9 +149,10 @@ const PriorityCell: FC<{
     staleTime: 0,
   });
 
-  const getWorkspacePrioritiesQuery = useQuery(
+  // console.log(board_id);
+  const getPrioritiesQuery = useQuery(
     trpc.priorities.getPriorities.queryOptions({
-      workspace_id,
+      board_id,
     })
   );
 
@@ -165,10 +164,10 @@ const PriorityCell: FC<{
   );
 
   if (priority_id !== null) {
-    for (let i = 0; i < (getWorkspacePrioritiesQuery.data?.length ?? 0); i++) {
-      if (priority_id === getWorkspacePrioritiesQuery.data![i].id) {
-        text = getWorkspacePrioritiesQuery.data![i].name_;
-        color = getWorkspacePrioritiesQuery.data![i].color;
+    for (let i = 0; i < (getPrioritiesQuery.data?.length ?? 0); i++) {
+      if (priority_id === getPrioritiesQuery.data![i].id) {
+        text = getPrioritiesQuery.data![i].name_;
+        color = getPrioritiesQuery.data![i].color;
       }
     }
   }
@@ -176,9 +175,7 @@ const PriorityCell: FC<{
   return (
     <button
       onClick={() => {
-        navigate(
-          `setCellPriority/${cell.column_id}/${cell.row_id}`
-        );
+        navigate(`setCellPriority/${cell.column_id}/${cell.row_id}`);
       }}
       className="w-full h-full p-1"
       style={{ background: color }}
@@ -190,8 +187,8 @@ const PriorityCell: FC<{
 
 const PeopleCell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
-  workspace_id: number;
-}> = ({ cell, workspace_id }) => {
+  board_id: number;
+}> = ({ cell, board_id }) => {
   const trpc = useTRPC();
   const navigate = useNavigate();
 
@@ -226,9 +223,7 @@ const PeopleCell: FC<{
   return (
     <button
       onClick={() => {
-        navigate(
-          `setCellPeople/${cell.column_id}/${cell.row_id}`
-        );
+        navigate(`setCellPeople/${cell.column_id}/${cell.row_id}`);
       }}
       className="w-full h-full p-1"
     >
@@ -247,8 +242,8 @@ const PeopleCell: FC<{
 
 export const Cell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
-  workspace_id: number;
-}> = ({ cell, workspace_id }) => {
+  board_id: number;
+}> = ({ cell, board_id }) => {
   if (cell.column_type === ZEGroupColumnTypes.enum.text) {
     return <TextCell cell={cell} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.number_) {
@@ -256,11 +251,11 @@ export const Cell: FC<{
   } else if (cell.column_type === ZEGroupColumnTypes.enum.date) {
     return <DateCell cell={cell} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.status) {
-    return <StatusCell cell={cell} workspace_id={workspace_id} />;
+    return <StatusCell cell={cell} board_id={board_id} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.priority) {
-    return <PriorityCell cell={cell} workspace_id={workspace_id} />;
+    return <PriorityCell cell={cell} board_id={board_id} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.people) {
-    return <PeopleCell cell={cell} workspace_id={workspace_id} />;
+    return <PeopleCell cell={cell} board_id={board_id} />;
   } else {
     return <div>UNKNOWN TYPE</div>;
   }

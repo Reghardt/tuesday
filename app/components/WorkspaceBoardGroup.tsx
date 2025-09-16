@@ -30,8 +30,7 @@ const WorkspaceBoardGroup: FC<{
     trpc.rows.createRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey:
-            trpc.groups.getGroupData.queryKey(),
+          queryKey: trpc.groups.getGroupData.queryKey(),
         });
       },
     })
@@ -41,8 +40,7 @@ const WorkspaceBoardGroup: FC<{
     trpc.rows.deleteGroupRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey:
-            trpc.groups.getGroupData.queryKey(),
+          queryKey: trpc.groups.getGroupData.queryKey(),
         });
       },
     })
@@ -67,9 +65,7 @@ const WorkspaceBoardGroup: FC<{
               <th>
                 <button
                   className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
-                  onClick={() =>
-                    navigate(`createColumn/${group_id}`)
-                  }
+                  onClick={() => navigate(`createColumn/${group_id}`)}
                 >
                   Create Column
                 </button>
@@ -88,10 +84,7 @@ const WorkspaceBoardGroup: FC<{
                         key={`${cell.column_id}_${cell.row_id}`}
                         className="text-left border"
                       >
-                        <Cell
-                          cell={cell}
-                          workspace_id={group_id}
-                        />
+                        <Cell cell={cell} board_id={board_id} />
                       </td>
                     );
                   })}
@@ -102,8 +95,7 @@ const WorkspaceBoardGroup: FC<{
                         onClick={() =>
                           deleteRowMutation.mutate({
                             id: row.id,
-                            group_id:
-                              row.group_id,
+                            group_id: row.group_id,
                           })
                         }
                         className="text-red-700 hover:bg-red-300 w-30"
@@ -127,10 +119,7 @@ const WorkspaceBoardGroup: FC<{
     <div>
       <div className="flex gap-2"></div>
 
-      {createTable(
-        getGroupDataQuery.data,
-        getGroupColumnsQuery.data
-      )}
+      {createTable(getGroupDataQuery.data, getGroupColumnsQuery.data)}
 
       {(getGroupColumnsQuery.data?.length ?? 0) > 0 ? (
         <div>

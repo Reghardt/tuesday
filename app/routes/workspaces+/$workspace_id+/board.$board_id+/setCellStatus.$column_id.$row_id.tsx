@@ -12,7 +12,7 @@ export default function Component({ params }: Route.ComponentProps) {
 
   const getStatusesQuery = useQuery(
     trpc.statuses.getStatuses.queryOptions({
-      workspace_id: Number(params.workspace_id),
+      board_id: Number(params.board_id),
     })
   );
 
@@ -21,7 +21,7 @@ export default function Component({ params }: Route.ComponentProps) {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.statuses.getStatuses.queryKey({
-            workspace_id: Number(params.workspace_id),
+            board_id: Number(params.board_id),
           }),
         });
       },
@@ -96,7 +96,7 @@ export default function Component({ params }: Route.ComponentProps) {
             <button
               onClick={() =>
                 createStatusMutation.mutate({
-                  workspace_id: Number(params.workspace_id),
+                  board_id: Number(params.board_id),
                   name_: statusName,
                   color: color,
                 })

@@ -12,7 +12,7 @@ export default function Component({ params }: Route.ComponentProps) {
 
   const getPrioritiesQuery = useQuery(
     trpc.priorities.getPriorities.queryOptions({
-      workspace_id: Number(params.workspace_id),
+      board_id: Number(params.board_id),
     })
   );
 
@@ -21,7 +21,7 @@ export default function Component({ params }: Route.ComponentProps) {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.priorities.getPriorities.queryKey({
-            workspace_id: Number(params.workspace_id),
+            board_id: Number(params.board_id),
           }),
         });
       },
@@ -58,6 +58,7 @@ export default function Component({ params }: Route.ComponentProps) {
             console.log(priority);
             return (
               <button
+                key={priority.id}
                 onClick={() => {
                   setCellContentMutation.mutate({
                     row_id: Number(params.row_id),
@@ -96,7 +97,7 @@ export default function Component({ params }: Route.ComponentProps) {
             <button
               onClick={() =>
                 createPrioritiesMutation.mutate({
-                  workspace_id: Number(params.workspace_id),
+                  board_id: Number(params.board_id),
                   name_: statusName,
                   color: color,
                 })
