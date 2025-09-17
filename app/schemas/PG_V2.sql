@@ -6,6 +6,22 @@ CREATE DATABASE tuesday;
 
 \l -- list databases
 
+DROP TABLE IF EXISTS updates;
+DROP TABLE IF EXISTS cells;
+DROP TABLE IF EXISTS rows;
+DROP TABLE IF EXISTS columns;
+DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS statuses;
+DROP TABLE IF EXISTS priorities;
+DROP TABLE IF EXISTS boards;
+DROP TABLE IF EXISTS workspaces;
+
+-- auth tables
+DROP TABLE IF EXISTS session;
+DROP TABLE IF EXISTS account;
+DROP TABLE IF EXISTS verification;
+DROP TABLE IF EXISTS "user";
+
 CREATE TABLE IF NOT EXISTS workspaces(
     id SERIAL PRIMARY KEY,
     name_ TEXT NOT NULL
