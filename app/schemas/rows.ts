@@ -24,17 +24,24 @@ export const ZRows = z.object({
 
 const ZGetRowsNextPos = ZRows.pick({
   group_id: true,
+  parent_row_id: true, // allow null for top-level rows
 });
+
 const getRowsNextPos = withDbErrorHandling(
-  "getGroupRowsNextColumn",
+  "getGroupRowsNextPos",
   async (client, values: z.infer<typeof ZGetRowsNextPos>) => {
+    console.log(values);
     const res = await client.query(
       `
-        SELECT COALESCE(MAX(pos), -1) + 1 as next_pos
+        SELECT COALESCE(MAX(pos), -1) + 1 AS next_pos
         FROM rows
         WHERE group_id = $1
-          `,
-      [values.group_id]
+        AND (
+          (parent_row_id IS NULL AND $2::integer IS NULL)
+          OR parent_row_id = $2::integer
+        )
+      `,
+      [values.group_id, values.parent_row_id]
     );
 
     return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
@@ -43,20 +50,23 @@ const getRowsNextPos = withDbErrorHandling(
 
 const ZCreateRow = ZRows.pick({
   group_id: true,
+  level: true,
+  parent_row_id: true,
 });
 const createRow = withDbErrorHandling("createRow", async (client, values: z.infer<typeof ZCreateRow>) => {
   const nextPos = await getRowsNextPos(client, {
     group_id: values.group_id,
+    parent_row_id: values.parent_row_id,
   });
 
   const group_row_id = getRowId(
     await client.query(
       `
-          INSERT INTO rows(group_id, level, pos) 
-          VALUES($1, $2, $3) 
+          INSERT INTO rows(group_id, level, pos, parent_row_id) 
+          VALUES($1, $2, $3, $4) 
           RETURNING id;
           `,
-      [values.group_id, 0, nextPos]
+      [values.group_id, values.level, nextPos, values.parent_row_id]
     )
   );
   const workspace_board_group = await getWorkspaceBoardGroup(client, {
@@ -65,7 +75,9 @@ const createRow = withDbErrorHandling("createRow", async (client, values: z.infe
 
   const columns = await getColumns(client, {
     board_id: workspace_board_group.board_id,
+    level: values.level,
   });
+
   for (let i = 0; i < columns.length; i++) {
     if (columns[i].column_type === ZEGroupColumnTypes.enum.text) {
       await createCell(client, {
@@ -140,6 +152,8 @@ export const rowsRouter = t.router({
     await withTransaction(async (client) => {
       await createRow(client, {
         group_id: opts.input.group_id,
+        level: opts.input.level,
+        parent_row_id: opts.input.parent_row_id,
       });
     });
   }),

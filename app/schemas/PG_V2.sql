@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS rows(
     level INTEGER NOT NULL CHECK (level >= 0),
     pos INTEGER NOT NULL,
     parent_row_id INTEGER REFERENCES rows(id) ON DELETE CASCADE,
-    UNIQUE (group_id, level, pos) -- prevent duplicate positions and levels
+    UNIQUE (group_id, pos, parent_row_id) -- prevent duplicate positions and levels
 );
 
 -- -- child row is 1 level deeper than parent

@@ -44,6 +44,7 @@ const getColumnsNextPos = withDbErrorHandling(
 
 const ZGetColumns = ZColumn.pick({
   board_id: true,
+  level: true,
 });
 export const getColumns = withDbErrorHandling("getColumns", async (client, values: z.infer<typeof ZGetColumns>) => {
   const res = await client.query(
@@ -51,9 +52,9 @@ export const getColumns = withDbErrorHandling("getColumns", async (client, value
       SELECT
         *
       from columns as wbc
-      where wbc.board_id = $1
+      where wbc.board_id = $1 AND wbc.level = $2
       `,
-    [values.board_id]
+    [values.board_id, values.level]
   );
 
   return ZColumn.array().parse(res.rows);
@@ -63,6 +64,7 @@ const ZCreateColumn = ZColumn.pick({
   board_id: true,
   name_: true,
   column_type: true,
+  level: true,
 }).extend({ group_id: z.number() });
 export const createColumn = withDbErrorHandling(
   "createColumn",
@@ -76,12 +78,13 @@ export const createColumn = withDbErrorHandling(
     const column_id = getRowId(
       await client.query(
         "INSERT INTO columns(board_id, level, name_, column_type, type_properties, pos) VALUES($1, $2, $3, $4, $5, $6) RETURNING *",
-        [values.board_id, 0, values.name_, values.column_type, {}, nextPos]
+        [values.board_id, values.level, values.name_, values.column_type, {}, nextPos]
       )
     );
 
     const group_rows = await getRows(client, {
       board_id: values.board_id,
+      level: values.level,
     });
 
     if (values.column_type === ZEGroupColumnTypes.enum.text) {
@@ -171,6 +174,7 @@ export const columnsRouter = t.router({
         name_: opts.input.name_,
         column_type: opts.input.column_type,
         group_id: opts.input.group_id,
+        level: opts.input.level,
       })
     );
   }),
@@ -178,6 +182,7 @@ export const columnsRouter = t.router({
     return await withTransaction((client) =>
       getColumns(client, {
         board_id: opts.input.board_id,
+        level: opts.input.level,
       })
     );
   }),

@@ -72,7 +72,9 @@ export const createGroup = withDbErrorHandling(
   }
 );
 
-const ZGetGroupData = ZGroup.pick({ id: true });
+const ZGetGroupData = ZGroup.pick({})
+  .extend({ group_id: z.number() })
+  .extend(ZRows.pick({ parent_row_id: true }).shape);
 export const ZGroupCellExtended = ZCell.extend(
   ZColumn.pick({
     column_type: true,
@@ -80,53 +82,56 @@ export const ZGroupCellExtended = ZCell.extend(
     pos: true,
   }).shape
 );
+
+export const ZGetGroupDataResult = ZRows.extend({
+  cells_arr: ZGroupCellExtended.array(),
+});
+
 const getGroupData = withDbErrorHandling("getGroupData", async (client, values: z.infer<typeof ZGetGroupData>) => {
   const res = await client.query(
     `
       SELECT 
-      wbgr.id,
-      wbgr.group_id,
-      wbgr.level,
-      wbgr.pos,
-      wbgr.parent_row_id,
+      rows.id,
+      rows.group_id,
+      rows.level,
+      rows.pos,
+      rows.parent_row_id,
       COALESCE(
         JSON_AGG(
             JSON_BUILD_OBJECT(
-
-              'row_id', wbcl.row_id,
-              'column_id', wbcl.column_id,
-              'content', wbcl.content,
-              'column_type', wbc.column_type,
-              'type_properties', wbc.type_properties,
-              'pos', wbc.pos
-            ) ORDER BY wbc.pos ASC
-        ) FILTER (WHERE wbcl.row_id IS NOT NULL),
+              'row_id', cells.row_id,
+              'column_id', cells.column_id,
+              'content', cells.content,
+              'column_type', columns.column_type,
+              'type_properties', columns.type_properties,
+              'pos', columns.pos
+            ) ORDER BY columns.pos ASC
+        ) FILTER (WHERE cells.row_id IS NOT NULL),
         '[]'::json
-      ) as cells
-      FROM rows as wbgr
-      LEFT JOIN cells as wbcl
-        ON wbcl.row_id = wbgr.id
-      LEFT JOIN columns as wbc 
-        ON wbc.id = wbcl.column_id
-      WHERE wbgr.group_id = $1
-      GROUP BY wbgr.id, wbgr.group_id, wbgr.pos
-      ORDER BY wbgr.pos ASC
+      ) as cells_arr
+      FROM rows
+      LEFT JOIN cells
+        ON cells.row_id = rows.id
+      LEFT JOIN columns 
+        ON columns.id = cells.column_id
+      WHERE rows.group_id = $1 AND (
+                                      (rows.parent_row_id IS NULL AND $2::integer IS NULL)
+                                      OR rows.parent_row_id = $2::integer
+                                    )
+      GROUP BY rows.id, rows.group_id, rows.pos
+      ORDER BY rows.pos ASC
       `,
-    [values.id]
+    [values.group_id, values.parent_row_id]
   );
 
-  const parsedRes = ZRows.extend({
-    cells: ZGroupCellExtended.array(),
-  })
-    .array()
-    .parse(res.rows);
+  const parsedRes = ZGetGroupDataResult.array().parse(res.rows);
 
   return parsedRes;
 });
 
 const ZGetRows = ZGroup.pick({
   board_id: true,
-});
+}).extend(ZRows.pick({ level: true }).shape);
 export const getRows = withDbErrorHandling("getRows", async (client, values: z.infer<typeof ZGetRows>) => {
   const res = await client.query(
     `
@@ -138,9 +143,9 @@ export const getRows = withDbErrorHandling("getRows", async (client, values: z.i
         wbgr.parent_row_id
       FROM groups
       JOIN rows AS wbgr ON wbgr.group_id = groups.id
-      WHERE board_id = $1
+      WHERE board_id = $1 AND level = $2
       `,
-    [values.board_id]
+    [values.board_id, values.level]
   );
 
   return ZRows.array().parse(res.rows);
@@ -164,6 +169,9 @@ export const groupsRouter = t.router({
   }),
 
   getGroupData: t.procedure.input(ZGetGroupData).query(async (opts) => {
-    return await withTransaction(async (client) => await getGroupData(client, { id: opts.input.id }));
+    return await withTransaction(
+      async (client) =>
+        await getGroupData(client, { group_id: opts.input.group_id, parent_row_id: opts.input.parent_row_id })
+    );
   }),
 });

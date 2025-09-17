@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { ZEGroupColumnTypes } from "~/enums/groupColumnTypes";
 import { useTRPC } from "~/utils/trpc/trpc";
-import type { Route } from "./+types/createColumn.$group_id";
+import type { Route } from "./+types/createColumn.$group_id.$level";
 
 export default function Component({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
@@ -40,6 +40,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.text,
                   group_id: Number(params.group_id),
+                  level: Number(params.level),
                 });
               }}
             >
@@ -52,6 +53,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.number_,
                   group_id: Number(params.group_id),
+                  level: Number(params.level),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -65,6 +67,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.date,
                   group_id: Number(params.group_id),
+                  level: Number(params.level),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -79,6 +82,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.status,
                   group_id: Number(params.group_id),
+                  level: Number(params.level),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -92,6 +96,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.priority,
                   group_id: Number(params.group_id),
+                  level: Number(params.level),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -105,6 +110,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.people,
                   group_id: Number(params.group_id),
+                  level: Number(params.level),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
@@ -122,6 +128,7 @@ export default function Component({ params }: Route.ComponentProps) {
                   board_id: Number(params.board_id),
                   column_type: ZEGroupColumnTypes.enum.updates,
                   group_id: Number(params.group_id),
+                  level: Number(params.level),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
