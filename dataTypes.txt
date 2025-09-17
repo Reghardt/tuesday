@@ -1,0 +1,12 @@
+0   Text                Done
+1   Number              Done
+2   Date                Done
+3   Time 
+4   Status (enum)       Done
+5   Priority (enum)     Done
+6   People              
+7   File
+8   Timeline
+9   Tags
+10  Checkbox
+11  updates column

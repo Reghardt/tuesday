@@ -1,0 +1,144 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type FC } from "react";
+import { useNavigate } from "react-router";
+import { useTRPC } from "~/utils/trpc/trpc";
+import { Cell } from "./Cell";
+import ColumnHeading from "./ColumnHeading";
+
+const WorkspaceBoardGroup: FC<{
+  group_id: number;
+  board_id: number;
+}> = ({ group_id, board_id }) => {
+  const navigate = useNavigate();
+
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const getGroupColumnsQuery = useQuery(
+    trpc.columns.getColumns.queryOptions({
+      board_id: board_id,
+    })
+  );
+
+  const getGroupDataQuery = useQuery(
+    trpc.groups.getGroupData.queryOptions({
+      id: group_id,
+    })
+  );
+
+  const createRowMutation = useMutation(
+    trpc.rows.createRow.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.groups.getGroupData.queryKey(),
+        });
+      },
+    })
+  );
+
+  const deleteRowMutation = useMutation(
+    trpc.rows.deleteGroupRow.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.groups.getGroupData.queryKey(),
+        });
+      },
+    })
+  );
+
+  function createTable(
+    rows: typeof getGroupDataQuery.data,
+    columns: typeof getGroupColumnsQuery.data
+  ) {
+    return (
+      <div className="flex gap-2">
+        <table>
+          <thead>
+            <tr className="">
+              {columns?.map((column) => {
+                return (
+                  <th key={column.id} className="text-left border w-60">
+                    <ColumnHeading column={column} />
+                  </th>
+                );
+              })}
+              <th>
+                <button
+                  className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
+                  onClick={() => navigate(`createColumn/${group_id}`)}
+                >
+                  Create Column
+                </button>
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rows?.map((row) => {
+              return (
+                <tr key={row.id}>
+                  {row.cells.map((cell) => {
+                    // console.log(cell.content);
+                    return (
+                      <td
+                        key={`${cell.column_id}_${cell.row_id}`}
+                        className="text-left border"
+                      >
+                        <Cell cell={cell} board_id={board_id} />
+                      </td>
+                    );
+                  })}
+
+                  {row.cells.length > 0 ? (
+                    <td className="">
+                      <button
+                        onClick={() =>
+                          deleteRowMutation.mutate({
+                            id: row.id,
+                            group_id: row.group_id,
+                          })
+                        }
+                        className="text-red-700 hover:bg-red-300 w-30"
+                      >
+                        Delete Row
+                      </button>
+                    </td>
+                  ) : (
+                    <></>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2"></div>
+
+      {createTable(getGroupDataQuery.data, getGroupColumnsQuery.data)}
+
+      {(getGroupColumnsQuery.data?.length ?? 0) > 0 ? (
+        <div>
+          <button
+            className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
+            onClick={() => {
+              createRowMutation.mutate({
+                group_id: group_id,
+              });
+            }}
+          >
+            Create Row
+          </button>
+        </div>
+      ) : (
+        <></>
+      )}
+    </div>
+  );
+};
+
+export default WorkspaceBoardGroup;
