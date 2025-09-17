@@ -42,8 +42,6 @@ export default function Component({ params }: Route.ComponentProps) {
     })
   );
 
-  console.log(getStatusesQuery.data);
-
   const [statusName, setStatusName] = useState("");
   const [color, setColor] = useState("#03fc28");
 
@@ -55,7 +53,6 @@ export default function Component({ params }: Route.ComponentProps) {
           <div>Status</div>
 
           {getStatusesQuery.data?.map((status) => {
-            console.log(status);
             return (
               <button
                 onClick={() => {
@@ -85,12 +82,7 @@ export default function Component({ params }: Route.ComponentProps) {
             </div>
             <div className="flex flex-col">
               <label>Color</label>
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className=" w-full h-10"
-              />
+              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className=" w-full h-10" />
             </div>
 
             <button

@@ -42,8 +42,6 @@ export default function Component({ params }: Route.ComponentProps) {
     })
   );
 
-  console.log(getPrioritiesQuery.data);
-
   const [statusName, setPrioritiesName] = useState("");
   const [color, setColor] = useState("#03fc28");
 
@@ -55,7 +53,6 @@ export default function Component({ params }: Route.ComponentProps) {
           <div>Priorities</div>
 
           {getPrioritiesQuery.data?.map((priority) => {
-            console.log(priority);
             return (
               <button
                 key={priority.id}
@@ -86,12 +83,7 @@ export default function Component({ params }: Route.ComponentProps) {
             </div>
             <div className="flex flex-col">
               <label>Color</label>
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className=" w-full h-10"
-              />
+              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className=" w-full h-10" />
             </div>
 
             <button

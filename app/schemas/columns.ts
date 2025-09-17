@@ -42,28 +42,6 @@ const getColumnsNextPos = withDbErrorHandling(
   }
 );
 
-// const ZGetColumn = ZColumn.pick({
-//   group_id: true,
-//   pos: true,
-// });
-// export const getColumn = withDbErrorHandling(
-//   "getColumn",
-//   async (client, values: z.infer<typeof ZGetColumn>) => {
-//     const res = await client.query(
-//       `
-//       SELECT
-//         *
-//       from group_columns as gc
-//       where gc.roup_id = $1 AND gc.pos = $2
-//       `,
-//       [values.group_id, values.pos]
-//     );
-
-//     const parsedRes = ZColumn.array().parse(res.rows);
-//     return parsedRes[0];
-//   }
-// );
-
 const ZGetColumns = ZColumn.pick({
   board_id: true,
 });
@@ -81,26 +59,6 @@ export const getColumns = withDbErrorHandling("getColumns", async (client, value
   return ZColumn.array().parse(res.rows);
 });
 
-// const ZGetGroupColumn = ZColumn.pick({
-//   id: true,
-// });
-// export const getGroupColumn = withDbErrorHandling(
-//   "getGroupColumn",
-//   async (client, values: z.infer<typeof ZGetGroupColumn>) => {
-//     const res = await client.query(
-//       `
-//       SELECT
-//         *
-//       from group_columns as gc
-//       where gc.id = $1
-//       `,
-//       [values.id]
-//     );
-
-//     return ZColumn.array().parse(res.rows)[0];
-//   }
-// );
-
 const ZCreateColumn = ZColumn.pick({
   board_id: true,
   name_: true,
@@ -113,8 +71,6 @@ export const createColumn = withDbErrorHandling(
     const nextPos = await getColumnsNextPos(client, {
       board_id: values.board_id,
     });
-
-    console.log("###########", values, nextPos);
 
     // create the workspace group column with the pos from above
     const column_id = getRowId(

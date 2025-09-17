@@ -46,10 +46,7 @@ const WorkspaceBoardGroup: FC<{
     })
   );
 
-  function createTable(
-    rows: typeof getGroupDataQuery.data,
-    columns: typeof getGroupColumnsQuery.data
-  ) {
+  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
     return (
       <div className="flex gap-2">
         <table>
@@ -78,12 +75,8 @@ const WorkspaceBoardGroup: FC<{
               return (
                 <tr key={row.id}>
                   {row.cells.map((cell) => {
-                    // console.log(cell.content);
                     return (
-                      <td
-                        key={`${cell.column_id}_${cell.row_id}`}
-                        className="text-left border"
-                      >
+                      <td key={`${cell.column_id}_${cell.row_id}`} className="text-left border">
                         <Cell cell={cell} board_id={board_id} />
                       </td>
                     );

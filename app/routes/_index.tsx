@@ -8,7 +8,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   const client = await pool.connect();
 
   const res = await client.query("SELECT * FROM account");
-  console.log(res.rows);
 
   const sessionUser = await getSessionUser(request);
   if (sessionUser) {

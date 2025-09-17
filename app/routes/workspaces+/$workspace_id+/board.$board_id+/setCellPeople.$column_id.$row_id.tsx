@@ -11,14 +11,12 @@ export default function Component({ params }: Route.ComponentProps) {
 
   const getUsersQuery = useQuery(trpc.users.getUsers.queryOptions());
 
-  console.log(getUsersQuery.data);
-
   const createStatusMutation = useMutation(
     trpc.statuses.createStatus.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.statuses.getStatuses.queryKey({
-            workspace_id: Number(params.workspace_id),
+            board_id: Number(params.board_id),
           }),
         });
       },
@@ -50,7 +48,6 @@ export default function Component({ params }: Route.ComponentProps) {
           <div>Status</div>
 
           {getUsersQuery.data?.map((user) => {
-            console.log(user);
             return (
               <button
                 onClick={() => {
@@ -79,18 +76,13 @@ export default function Component({ params }: Route.ComponentProps) {
             </div>
             <div className="flex flex-col">
               <label>Color</label>
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className=" w-full h-10"
-              />
+              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className=" w-full h-10" />
             </div>
 
             <button
               onClick={() =>
                 createStatusMutation.mutate({
-                  workspace_id: Number(params.workspace_id),
+                  board_id: Number(params.board_id),
                   name_: statusName,
                   color: color,
                 })

@@ -14,13 +14,9 @@ import {
 import type { ZGroupCellExtended } from "~/schemas/groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.cells.setCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
 
   return (
     <input
@@ -38,13 +34,9 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.cells.setCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
 
   return (
     <input
@@ -62,13 +54,9 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.cells.setCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
 
   return (
     <input
@@ -102,9 +90,7 @@ const StatusCell: FC<{
     staleTime: 0,
   });
 
-  const getStatusesQuery = useQuery(
-    trpc.statuses.getStatuses.queryOptions({ board_id })
-  );
+  const getStatusesQuery = useQuery(trpc.statuses.getStatuses.queryOptions({ board_id }));
 
   let text = "No Status";
   let color = "#4a5565";
@@ -149,7 +135,6 @@ const PriorityCell: FC<{
     staleTime: 0,
   });
 
-  // console.log(board_id);
   const getPrioritiesQuery = useQuery(
     trpc.priorities.getPriorities.queryOptions({
       board_id,
@@ -159,9 +144,7 @@ const PriorityCell: FC<{
   let text = "No Status";
   let color = "#4a5565";
 
-  const priority_id = priorityColumnTypeCodec.decode(
-    getCellQuery.data?.content
-  );
+  const priority_id = priorityColumnTypeCodec.decode(getCellQuery.data?.content);
 
   if (priority_id !== null) {
     for (let i = 0; i < (getPrioritiesQuery.data?.length ?? 0); i++) {
@@ -204,7 +187,6 @@ const PeopleCell: FC<{
   const getUsersQuery = useQuery(trpc.users.getUsers.queryOptions());
 
   const user_names: string[] = [];
-  console.log(getCellQuery.data.content);
   const user_ids = peopleColumnTypeCodec.decode(getCellQuery.data.content);
 
   for (let i = 0; i < user_ids.length; i++) {
@@ -217,8 +199,6 @@ const PeopleCell: FC<{
       }
     }
   }
-
-  console.log();
 
   return (
     <button
@@ -246,8 +226,6 @@ const UpdatesCell: FC<{
 }> = ({ cell, board_id }) => {
   const trpc = useTRPC();
   const navigate = useNavigate();
-
-  console.log(cell);
 
   const getCellQuery = useQuery({
     ...trpc.cells.getCell.queryOptions({

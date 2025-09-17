@@ -77,13 +77,13 @@ CREATE TABLE IF NOT EXISTS rows(
     UNIQUE (group_id, level, pos) -- prevent duplicate positions and levels
 );
 
--- child row is 1 level deeper than parent
-ALTER TABLE rows 
-ADD CONSTRAINT check_parent_level 
-CHECK (
-    parent_row_id IS NULL OR 
-    level = (SELECT level + 1 FROM rows p WHERE p.id = parent_row_id)
-)
+-- -- child row is 1 level deeper than parent
+-- ALTER TABLE rows 
+-- ADD CONSTRAINT check_parent_level 
+-- CHECK (
+--     parent_row_id IS NULL OR 
+--     level = (SELECT level + 1 FROM rows p WHERE p.id = parent_row_id)
+-- )
 
 -- Level 0 rows should have no parent
 ALTER TABLE rows 

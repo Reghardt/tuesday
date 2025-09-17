@@ -29,9 +29,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           queryKey: trpc.workspaces.getWorkspaces.queryKey(),
         });
       },
-      onError: (e) => {
-        console.log(e);
-      },
+      onError: (e) => {},
     })
   );
 

@@ -43,7 +43,7 @@ export function withDbErrorHandling<T extends unknown[], R>(
       return await fn(client, ...args);
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      console.log(`${debug_query_name} failed, ${e}`);
+      console.error(`${debug_query_name} failed, ${e}`);
       throw new Error(`${debug_query_name} failed, ${e}`);
     }
   };
