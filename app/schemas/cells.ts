@@ -3,7 +3,6 @@ import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 
 export const ZCell = z.object({
-  id: z.number(),
   row_id: z.number(),
   column_id: z.number(),
   content: z.json(),
@@ -50,20 +49,6 @@ const getCell = withDbErrorHandling(
       "SELECT * FROM cells WHERE column_id = $1 AND row_id = $2",
       [values.column_id, values.row_id]
     );
-
-    return ZCell.array().parse(res.rows)[0];
-  }
-);
-
-const ZGetCellById = ZCell.pick({
-  id: true,
-});
-export const getCellById = withDbErrorHandling(
-  "getCellById",
-  async (client, values: z.infer<typeof ZGetCellById>) => {
-    const res = await client.query("SELECT * FROM cells WHERE id = $1", [
-      values.id,
-    ]);
 
     return ZCell.array().parse(res.rows)[0];
   }

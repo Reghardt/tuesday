@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { redirect, useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
-import type { Route } from "./+types/updates.$cell_id";
 import { useState } from "react";
 import { getSessionUser } from "~/utils/auth.server";
+import type { Route } from "./+types/updates.$column_id.$row_id";
+import CloseIcon from "~/components/icons/CloseIcon";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getSessionUser(request);
@@ -22,7 +23,8 @@ export default function Component({
 
   const getUpdatesQuery = useQuery(
     trpc.updates.getUpdates.queryOptions({
-      cell_id: Number(params.cell_id),
+      row_id: Number(params.row_id),
+      column_id: Number(params.column_id),
     })
   );
 
@@ -31,16 +33,17 @@ export default function Component({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.updates.getUpdates.queryKey({
-            cell_id: Number(params.cell_id),
+            row_id: Number(params.row_id),
+            column_id: Number(params.column_id),
           }),
         });
         setNote("");
-        //         queryClient.invalidateQueries({
-        //   queryKey: trpc.cells.getCell.queryKey({
-        //     row_id: Number(params.cell_id),
-        //     column_id: Number(params.cell_id),
-        //   }),
-        // });
+        queryClient.invalidateQueries({
+          queryKey: trpc.cells.getCell.queryKey({
+            row_id: Number(params.row_id),
+            column_id: Number(params.column_id),
+          }),
+        });
       },
     })
   );
@@ -56,7 +59,7 @@ export default function Component({
             onClick={() => navigate(-1)}
             className="p-1 rounded-full hover:bg-neutral-800"
           >
-            X
+            <CloseIcon className=" text-red-600 " />
           </button>
         </div>
 
@@ -95,7 +98,8 @@ export default function Component({
             <button
               onClick={() =>
                 createUpdateMutation.mutate({
-                  cell_id: Number(params.cell_id),
+                  row_id: Number(params.row_id),
+                  column_id: Number(params.column_id),
                   user_id: loaderData.user_id,
                   note,
                 })

@@ -16,11 +16,16 @@ export const ZGroup = z.object({
 const ZGetGroups = ZGroup.pick({
   board_id: true,
 });
-export const getGroups = withDbErrorHandling("getGroups", async (client, values: z.infer<typeof ZGetGroups>) => {
-  const res = await client.query("SELECT * from groups WHERE board_id = $1", [values.board_id]);
+export const getGroups = withDbErrorHandling(
+  "getGroups",
+  async (client, values: z.infer<typeof ZGetGroups>) => {
+    const res = await client.query("SELECT * from groups WHERE board_id = $1", [
+      values.board_id,
+    ]);
 
-  return ZGroup.array().parse(res.rows);
-});
+    return ZGroup.array().parse(res.rows);
+  }
+);
 
 const ZGetGroup = ZGroup.pick({
   id: true,
@@ -28,7 +33,9 @@ const ZGetGroup = ZGroup.pick({
 export const getWorkspaceBoardGroup = withDbErrorHandling(
   "getGroups",
   async (client, values: z.infer<typeof ZGetGroup>) => {
-    const res = await client.query("SELECT * from groups WHERE id = $1", [values.id]);
+    const res = await client.query("SELECT * from groups WHERE id = $1", [
+      values.id,
+    ]);
 
     return ZGroup.array().parse(res.rows)[0];
   }
@@ -49,7 +56,8 @@ const getGroupsNextPos = withDbErrorHandling(
       [values.board_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
+      .next_pos;
   }
 );
 
@@ -65,11 +73,10 @@ export const createGroup = withDbErrorHandling(
       board_id: values.board_id,
     });
 
-    return await client.query("INSERT INTO groups(board_id, name_, pos) VALUES($1, $2, $3)", [
-      values.board_id,
-      values.name_,
-      nextPos,
-    ]);
+    return await client.query(
+      "INSERT INTO groups(board_id, name_, pos) VALUES($1, $2, $3)",
+      [values.board_id, values.name_, nextPos]
+    );
   }
 );
 
@@ -81,9 +88,11 @@ export const ZGroupCellExtended = ZCell.extend(
     pos: true,
   }).shape
 );
-const getGroupData = withDbErrorHandling("getGroupData", async (client, values: z.infer<typeof ZGetGroupData>) => {
-  const res = await client.query(
-    `
+const getGroupData = withDbErrorHandling(
+  "getGroupData",
+  async (client, values: z.infer<typeof ZGetGroupData>) => {
+    const res = await client.query(
+      `
       SELECT 
       wbgr.id,
       wbgr.group_id,
@@ -93,7 +102,7 @@ const getGroupData = withDbErrorHandling("getGroupData", async (client, values: 
       COALESCE(
         JSON_AGG(
             JSON_BUILD_OBJECT(
-              'id', wbcl.id,
+
               'row_id', wbcl.row_id,
               'column_id', wbcl.column_id,
               'content', wbcl.content,
@@ -113,25 +122,28 @@ const getGroupData = withDbErrorHandling("getGroupData", async (client, values: 
       GROUP BY wbgr.id, wbgr.group_id, wbgr.pos
       ORDER BY wbgr.pos ASC
       `,
-    [values.id]
-  );
+      [values.id]
+    );
 
-  const parsedRes = ZRows.extend({
-    cells: ZGroupCellExtended.array(),
-  })
-    .array()
-    .parse(res.rows);
+    const parsedRes = ZRows.extend({
+      cells: ZGroupCellExtended.array(),
+    })
+      .array()
+      .parse(res.rows);
 
-  console.log(parsedRes);
-  return parsedRes;
-});
+    console.log(parsedRes);
+    return parsedRes;
+  }
+);
 
 const ZGetRows = ZGroup.pick({
   board_id: true,
 });
-export const getRows = withDbErrorHandling("getRows", async (client, values: z.infer<typeof ZGetRows>) => {
-  const res = await client.query(
-    `
+export const getRows = withDbErrorHandling(
+  "getRows",
+  async (client, values: z.infer<typeof ZGetRows>) => {
+    const res = await client.query(
+      `
       SELECT
         wbgr.id,
         wbgr.group_id,
@@ -142,13 +154,14 @@ export const getRows = withDbErrorHandling("getRows", async (client, values: z.i
       JOIN rows AS wbgr ON wbgr.group_id = groups.id
       WHERE board_id = $1
       `,
-    [values.board_id]
-  );
+      [values.board_id]
+    );
 
-  console.log("@@@@@@@@@@@@@@@@@", res.rows);
+    console.log("@@@@@@@@@@@@@@@@@", res.rows);
 
-  return ZRows.array().parse(res.rows);
-});
+    return ZRows.array().parse(res.rows);
+  }
+);
 
 export const groupsRouter = t.router({
   getGroups: t.procedure.input(ZGetGroups).query(async (opts) => {
@@ -158,16 +171,20 @@ export const groupsRouter = t.router({
       })
     );
   }),
-  createGroup: t.procedure.input(ZCreateGroupWithWorkspaceParent).mutation(async (opts) => {
-    return await withTransaction((client) =>
-      createGroup(client, {
-        board_id: opts.input.board_id,
-        name_: opts.input.name_,
-      })
-    );
-  }),
+  createGroup: t.procedure
+    .input(ZCreateGroupWithWorkspaceParent)
+    .mutation(async (opts) => {
+      return await withTransaction((client) =>
+        createGroup(client, {
+          board_id: opts.input.board_id,
+          name_: opts.input.name_,
+        })
+      );
+    }),
 
   getGroupData: t.procedure.input(ZGetGroupData).query(async (opts) => {
-    return await withTransaction(async (client) => await getGroupData(client, { id: opts.input.id }));
+    return await withTransaction(
+      async (client) => await getGroupData(client, { id: opts.input.id })
+    );
   }),
 });
