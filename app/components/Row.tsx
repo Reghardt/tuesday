@@ -5,6 +5,7 @@ import { Cell } from "./Cell";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "~/utils/trpc/trpc";
 import Group from "./Group";
+import Chevron from "./icons/Chevron";
 
 const Row: FC<{
   row: z.infer<typeof ZGetGroupDataResult>;
@@ -30,9 +31,9 @@ const Row: FC<{
   return (
     <>
       <div key={row.id} className="flex">
-        <div className="w-20">
+        <div className="text-left border w-8 flex items-center justify-center">
           <button onClick={() => setExpanded((expanded) => !expanded)}>
-            Expand
+            <Chevron rotate={expanded ? 0 : -90} />
           </button>
         </div>
         {row.cells_arr.map((cell) => {
@@ -65,7 +66,7 @@ const Row: FC<{
         )}
       </div>
       {expanded ? (
-        <div className="pl-24 pt-2">
+        <div className="pt-2 pl-8">
           <Group
             board_id={board_id}
             group_id={group_id}

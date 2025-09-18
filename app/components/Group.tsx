@@ -4,6 +4,7 @@ import { useTRPC } from "~/utils/trpc/trpc";
 import ColumnHeading from "./ColumnHeading";
 import { useNavigate } from "react-router";
 import Row from "./Row";
+import Chevron from "./icons/Chevron";
 
 const Group: FC<{
   board_id: number;
@@ -48,35 +49,36 @@ const Group: FC<{
     columns: typeof getGroupColumnsQuery.data
   ) {
     return (
-      <div className="flex gap-2">
-        <div>
-          <div className="flex">
-            {columns?.map((column) => {
-              return (
-                <div key={column.id} className="text-left border w-60">
-                  <ColumnHeading column={column} />
-                </div>
-              );
-            })}
-            <div>
-              <div
-                className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
-                onClick={() => navigate(`createColumn/${group_id}/${level}`)}
-              >
-                Create Column
+      <div>
+        <div className="flex">
+          <div className="text-left  w-8 flex items-center justify-center">
+            {/* <Chevron /> */}
+          </div>
+          {columns?.map((column) => {
+            return (
+              <div key={column.id} className="text-left border w-60">
+                <ColumnHeading column={column} />
               </div>
+            );
+          })}
+          <div>
+            <div
+              className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
+              onClick={() => navigate(`createColumn/${group_id}/${level}`)}
+            >
+              Create Column
             </div>
           </div>
-
-          {rows?.map((row) => (
-            <Row
-              row={row}
-              board_id={board_id}
-              group_id={group_id}
-              level={level + 1}
-            />
-          ))}
         </div>
+
+        {rows?.map((row) => (
+          <Row
+            row={row}
+            board_id={board_id}
+            group_id={group_id}
+            level={level + 1}
+          />
+        ))}
       </div>
     );
   }
