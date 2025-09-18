@@ -1,31 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FC } from "react";
-import { useNavigate } from "react-router";
+import type { FC } from "react";
 import { useTRPC } from "~/utils/trpc/trpc";
-import { Cell } from "./Cell";
 import ColumnHeading from "./ColumnHeading";
+import { useNavigate } from "react-router";
 import Row from "./Row";
 
-const WorkspaceBoardGroup: FC<{
-  group_id: number;
+const Group: FC<{
   board_id: number;
-}> = ({ group_id, board_id }) => {
-  const navigate = useNavigate();
-
+  group_id: number;
+  level: number;
+  parent_row_id: number | null;
+}> = ({ board_id, group_id, level, parent_row_id }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  const navigate = useNavigate();
 
   const getGroupColumnsQuery = useQuery(
     trpc.columns.getColumns.queryOptions({
       board_id: board_id,
-      level: 0,
-    })
-  );
-
-  const getGroupDataQuery = useQuery(
-    trpc.groups.getGroupData.queryOptions({
-      group_id: group_id,
-      parent_row_id: null,
+      level: level,
     })
   );
 
@@ -33,18 +27,30 @@ const WorkspaceBoardGroup: FC<{
     trpc.rows.createRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.groups.getGroupData.queryKey(),
+          queryKey: trpc.groups.getGroupData.queryKey({
+            group_id: group_id,
+            parent_row_id: parent_row_id,
+          }),
         });
       },
     })
   );
 
-  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
+  const getGroupDataQuery = useQuery(
+    trpc.groups.getGroupData.queryOptions({
+      group_id: group_id,
+      parent_row_id: parent_row_id,
+    })
+  );
+
+  function createTable(
+    rows: typeof getGroupDataQuery.data,
+    columns: typeof getGroupColumnsQuery.data
+  ) {
     return (
       <div className="flex gap-2">
         <div>
           <div className="flex">
-            <div className="w-20"></div>
             {columns?.map((column) => {
               return (
                 <div key={column.id} className="text-left border w-60">
@@ -55,7 +61,7 @@ const WorkspaceBoardGroup: FC<{
             <div>
               <div
                 className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
-                onClick={() => navigate(`createColumn/${group_id}/${0}`)}
+                onClick={() => navigate(`createColumn/${group_id}/${level}`)}
               >
                 Create Column
               </div>
@@ -63,7 +69,12 @@ const WorkspaceBoardGroup: FC<{
           </div>
 
           {rows?.map((row) => (
-            <Row key={row.id} row={row} board_id={board_id} group_id={group_id} level={0} />
+            <Row
+              row={row}
+              board_id={board_id}
+              group_id={group_id}
+              level={level + 1}
+            />
           ))}
         </div>
       </div>
@@ -83,8 +94,8 @@ const WorkspaceBoardGroup: FC<{
             onClick={() => {
               createRowMutation.mutate({
                 group_id: group_id,
-                level: 0,
-                parent_row_id: null,
+                level: level,
+                parent_row_id,
               });
             }}
           >
@@ -98,4 +109,4 @@ const WorkspaceBoardGroup: FC<{
   );
 };
 
-export default WorkspaceBoardGroup;
+export default Group;

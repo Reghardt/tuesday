@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTRPC } from "~/utils/trpc/trpc";
 import type { Route } from "./+types/_route";
-import WorkspaceBoardGroup from "~/components/WorkspaceBoardGroup";
 import { Outlet } from "react-router";
+import Group from "~/components/Group";
 
 export default function Component({ params }: Route.ComponentProps) {
   const [groupName, setGroupName] = useState("");
@@ -20,8 +20,7 @@ export default function Component({ params }: Route.ComponentProps) {
     trpc.groups.createGroup.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey:
-            trpc.groups.getGroups.queryKey(),
+          queryKey: trpc.groups.getGroups.queryKey(),
         });
 
         setGroupName("");
@@ -40,9 +39,11 @@ export default function Component({ params }: Route.ComponentProps) {
               return (
                 <div key={group.id}>
                   <div>{group.name_}</div>
-                  <WorkspaceBoardGroup
+                  <Group
                     group_id={group.id}
                     board_id={Number(params.board_id)}
+                    level={0}
+                    parent_row_id={null}
                   />
                 </div>
               );

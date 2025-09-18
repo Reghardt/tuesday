@@ -4,15 +4,14 @@ import type { ZGetGroupDataResult, ZGroupCellExtended } from "~/schemas/groups";
 import { Cell } from "./Cell";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "~/utils/trpc/trpc";
-import WorkspaceBoardGroup from "./WorkspaceBoardGroup";
-import SubGroup from "./SubGroup";
+import Group from "./Group";
 
-const Row: FC<{ row: z.infer<typeof ZGetGroupDataResult>; board_id: number; group_id: number; level: number }> = ({
-  row,
-  board_id,
-  group_id,
-  level,
-}) => {
+const Row: FC<{
+  row: z.infer<typeof ZGetGroupDataResult>;
+  board_id: number;
+  group_id: number;
+  level: number;
+}> = ({ row, board_id, group_id, level }) => {
   const [expanded, setExpanded] = useState(false);
 
   const trpc = useTRPC();
@@ -32,11 +31,16 @@ const Row: FC<{ row: z.infer<typeof ZGetGroupDataResult>; board_id: number; grou
     <>
       <div key={row.id} className="flex">
         <div className="w-20">
-          <button onClick={() => setExpanded((expanded) => !expanded)}>Expand</button>
+          <button onClick={() => setExpanded((expanded) => !expanded)}>
+            Expand
+          </button>
         </div>
         {row.cells_arr.map((cell) => {
           return (
-            <div key={`${cell.column_id}_${cell.row_id}`} className="text-left border w-60">
+            <div
+              key={`${cell.column_id}_${cell.row_id}`}
+              className="text-left border w-60"
+            >
               <Cell cell={cell} board_id={board_id} />
             </div>
           );
@@ -62,7 +66,12 @@ const Row: FC<{ row: z.infer<typeof ZGetGroupDataResult>; board_id: number; grou
       </div>
       {expanded ? (
         <div className="pl-24 pt-2">
-          <SubGroup board_id={board_id} group_id={group_id} level={level + 1} parent_row_id={row.id} />
+          <Group
+            board_id={board_id}
+            group_id={group_id}
+            level={level + 1}
+            parent_row_id={row.id}
+          />
         </div>
       ) : (
         <></>
