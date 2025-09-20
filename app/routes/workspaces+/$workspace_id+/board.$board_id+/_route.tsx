@@ -30,19 +30,17 @@ export default function Component({ params }: Route.ComponentProps) {
 
   return (
     <>
-      <div className="flex flex-col gap-2 p-2 bg-neutral-900">
+      <div className="flex flex-col gap-8 p-2 bg-neutral-900">
         <div>Workspace</div>
 
-        <div className="gap-2 w-full">
-          {getGroups.data?.map((group) => {
-            return (
-              <div key={group.id}>
-                <div>{group.name_}</div>
-                <Group group_id={group.id} board_id={Number(params.board_id)} level={0} parent_row_id={null} />
-              </div>
-            );
-          })}
-        </div>
+        {getGroups.data?.map((group) => {
+          return (
+            <div key={group.id}>
+              <div>{group.name_}</div>
+              <Group group_id={group.id} board_id={Number(params.board_id)} level={0} parent_row_id={null} />
+            </div>
+          );
+        })}
 
         <div className="flex">
           <input
