@@ -9,9 +9,7 @@ import type { Route } from "./+types/_route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const workspace_id = z.coerce.number().parse(params.workspace_id);
-  const workspace = await withTransaction((client) =>
-    getWorkspace(client, { id: workspace_id })
-  );
+  const workspace = await withTransaction((client) => getWorkspace(client, { id: workspace_id }));
   if (workspace === undefined) {
     throw Error("That Workspace Does not exist");
   }
@@ -51,23 +49,19 @@ export default function Component({ loaderData }: Route.ComponentProps) {
   );
   return (
     <>
-      <div className="flex gap-2">
-        <div className="w-60 bg-gray-800 h-[100svh] p-2 flex flex-col gap-4">
-          <div className="">
+      <div className="grid grid-cols-[16em_1fr]">
+        <div className="bg-gray-800 h-[100svh] p-2 flex flex-col gap-4">
+          <div>
             <div className=" text-lg">{loaderData.workspace.name_}</div>
             <div>Workspace Boards</div>
             {(getBoardsQuery.data?.length ?? 0) === 0 ? (
-              <div className="text-center w-full text-sm text-gray-400">
-                No Boards
-              </div>
+              <div className="text-center w-full text-sm text-gray-400">No Boards</div>
             ) : (
               <div className="flex flex-col gap-2">
                 {getBoardsQuery.data?.map((board) => {
                   return (
                     <NavLink
-                      className={({ isActive }) =>
-                        isActive ? "bg-green-800" : ""
-                      }
+                      className={({ isActive }) => (isActive ? "bg-green-800" : "")}
                       to={`board/${board.id}`}
                       key={board.id}
                     >
@@ -80,12 +74,7 @@ export default function Component({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div className="flex flex-col">
-            <input
-              type="text"
-              className="border"
-              value={boardName}
-              onChange={(e) => setBoardName(e.target.value)}
-            />
+            <input type="text" className="border" value={boardName} onChange={(e) => setBoardName(e.target.value)} />
             <button
               className="bg-blue-800"
               onClick={() =>

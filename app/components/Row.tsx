@@ -31,7 +31,10 @@ const Row: FC<{
   return (
     <>
       <div key={row.id} className="flex">
-        <div className="text-left border w-8 flex items-center justify-center">
+        <div className="min-w-8 border-t border-l border-neutral-700 flex justify-center items-center">
+          <input type="checkbox" className="scale-130"></input>
+        </div>
+        <div className="text-left border-t border-l border-neutral-700 w-8 flex items-center justify-center">
           <button onClick={() => setExpanded((expanded) => !expanded)}>
             <Chevron rotate={expanded ? 0 : -90} />
           </button>
@@ -40,7 +43,7 @@ const Row: FC<{
           return (
             <div
               key={`${cell.column_id}_${cell.row_id}`}
-              className="text-left border w-60"
+              className="text-left border-t border-l border-neutral-700 w-60"
             >
               <Cell cell={cell} board_id={board_id} />
             </div>
@@ -66,14 +69,12 @@ const Row: FC<{
         )}
       </div>
       {expanded ? (
-        <div className="pt-2 pl-8">
-          <Group
-            board_id={board_id}
-            group_id={group_id}
-            level={level + 1}
-            parent_row_id={row.id}
-          />
-        </div>
+        <>
+          <div className="w-full border-t border-neutral-700"></div>
+          <div className="py-4 pl-8 ">
+            <Group board_id={board_id} group_id={group_id} level={level + 1} parent_row_id={row.id} />
+          </div>
+        </>
       ) : (
         <></>
       )}

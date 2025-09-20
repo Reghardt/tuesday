@@ -3,8 +3,10 @@ import type { FC } from "react";
 import type z from "zod";
 import type { ZColumn } from "~/schemas/columns";
 import { useTRPC } from "~/utils/trpc/trpc";
+import CloseIcon from "./icons/CloseIcon";
+import PlusIcon from "./icons/PlusIcon";
 
-const ColumnHeading: FC<{ column: z.infer<typeof ZColumn> }> = ({ column, }) => {
+const ColumnHeading: FC<{ column: z.infer<typeof ZColumn> }> = ({ column }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -12,23 +14,19 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZColumn> }> = ({ column, }) => 
     trpc.columns.deleteColumn.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey:
-            trpc.columns.getColumns.queryKey(),
+          queryKey: trpc.columns.getColumns.queryKey(),
         });
         queryClient.invalidateQueries({
-          queryKey:
-            trpc.groups.getGroupData.queryKey(),
+          queryKey: trpc.groups.getGroupData.queryKey(),
         });
       },
     })
   );
 
-  const setGroupColumnName = useMutation(
-    trpc.columns.setGroupColumnName.mutationOptions()
-  );
+  const setGroupColumnName = useMutation(trpc.columns.setGroupColumnName.mutationOptions());
 
   return (
-    <div className="grid grid-cols-[80%_20%]">
+    <div className="grid grid-cols-[86%_18%]">
       <input
         onChange={(e) => {
           setGroupColumnName.mutate({
@@ -38,10 +36,10 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZColumn> }> = ({ column, }) => 
         }}
         defaultValue={column.name_}
         type="text"
-        className="p-1"
+        className="p-1 focus:outline-hidden"
       />
-      <button
-        className=" text-red-700 font-light hover:bg-red-300 border-l border-white"
+      {/* <button
+        className=" text-red-700 font-light hover:bg-red-300 border-l border-neutral-700"
         onClick={() => {
           deleteColumnMutation.mutate({
             id: column.id,
@@ -49,8 +47,22 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZColumn> }> = ({ column, }) => 
           });
         }}
       >
-        X
-      </button>
+        <CloseIcon />
+      </button> */}
+
+      <div className="text-left border-l border-neutral-700 w-full p-1">
+        <button
+          className=" font-light text-white rounded-full hover:bg-neutral-700 h-full aspect-square flex items-center justify-center"
+          onClick={() => {
+            deleteColumnMutation.mutate({
+              id: column.id,
+              board_id: column.board_id,
+            });
+          }}
+        >
+          <CloseIcon />
+        </button>
+      </div>
     </div>
   );
 };

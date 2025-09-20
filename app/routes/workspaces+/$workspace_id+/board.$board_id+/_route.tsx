@@ -30,48 +30,42 @@ export default function Component({ params }: Route.ComponentProps) {
 
   return (
     <>
-      <div>
-        <div className="flex flex-col gap-2">
-          <div>Workspace</div>
+      <div className="flex flex-col gap-2 p-2 bg-neutral-900">
+        <div>Workspace</div>
 
-          <div className="flex flex-col gap-2">
-            {getGroups.data?.map((group) => {
-              return (
-                <div key={group.id}>
-                  <div>{group.name_}</div>
-                  <Group
-                    group_id={group.id}
-                    board_id={Number(params.board_id)}
-                    level={0}
-                    parent_row_id={null}
-                  />
-                </div>
-              );
-            })}
-          </div>
+        <div className="gap-2 w-full">
+          {getGroups.data?.map((group) => {
+            return (
+              <div key={group.id}>
+                <div>{group.name_}</div>
+                <Group group_id={group.id} board_id={Number(params.board_id)} level={0} parent_row_id={null} />
+              </div>
+            );
+          })}
+        </div>
 
-          <div className="flex">
-            <input
-              className="border border-white"
-              type="text"
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-            ></input>
-            <button
-              className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
-              type="button"
-              onClick={() =>
-                createGroupMutation.mutate({
-                  board_id: Number(params.board_id),
-                  name_: groupName,
-                })
-              }
-            >
-              Create Group
-            </button>
-          </div>
+        <div className="flex">
+          <input
+            className="border border-white"
+            type="text"
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+          ></input>
+          <button
+            className=" font-light p-1 bg-blue-900 hover:bg-blue-900/80"
+            type="button"
+            onClick={() =>
+              createGroupMutation.mutate({
+                board_id: Number(params.board_id),
+                name_: groupName,
+              })
+            }
+          >
+            Create Group
+          </button>
         </div>
       </div>
+
       <Outlet />
     </>
   );

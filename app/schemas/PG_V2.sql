@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS updates(
     column_id INTEGER NOT NULL,    
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    user_id TEXT NOT NULL REFERENCES "user"(id), -- user should not be able to be deleted if they wrote an update
+    user_id TEXT NOT NULL REFERENCES "user"(id), -- user should not be able to be deleted if they wrote an update, no cascade
     note TEXT,
     FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
 );
