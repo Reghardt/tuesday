@@ -32,7 +32,7 @@ export default function Component({ params }: Route.ComponentProps) {
 
   return (
     <>
-      <SelectedRowsStoreProvider>
+      <SelectedRowsStoreProvider key={Number(params.board_id)}>
         <div className="flex flex-col gap-8 p-2 bg-neutral-900">
           <div>Workspace</div>
 
