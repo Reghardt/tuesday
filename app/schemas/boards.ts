@@ -2,24 +2,21 @@ import z from "zod";
 import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 
-export const ZBoards = z.object({
+export const ZBoard = z.object({
   id: z.number(),
   workspace_id: z.number(),
   name_: z.string().min(1),
   pos: z.number().min(0),
 });
 
-const ZGetBoards = ZBoards.pick({ workspace_id: true });
-export const getBoards = withDbErrorHandling(
-  "getBoards",
-  async (client, values: z.infer<typeof ZGetBoards>) => {
-    const res = await client.query("SELECT * from boards WHERE workspace_id = $1", [values.workspace_id]);
+const ZGetBoards = ZBoard.pick({ workspace_id: true });
+export const getBoards = withDbErrorHandling("getBoards", async (client, values: z.infer<typeof ZGetBoards>) => {
+  const res = await client.query("SELECT * from boards WHERE workspace_id = $1", [values.workspace_id]);
 
-    return ZBoards.array().parse(res.rows);
-  }
-);
+  return ZBoard.array().parse(res.rows);
+});
 
-const ZGetBoardsNextPos = ZBoards.pick({
+const ZGetBoardsNextPos = ZBoard.pick({
   workspace_id: true,
 });
 const getBoardsNextPos = withDbErrorHandling(
@@ -38,19 +35,16 @@ const getBoardsNextPos = withDbErrorHandling(
   }
 );
 
-const ZCreateBoard = ZBoards.pick({ workspace_id: true, name_: true });
-export const createBoard = withDbErrorHandling(
-  "createBoard",
-  async (client, values: z.infer<typeof ZCreateBoard>) => {
-    const next_pos = await getBoardsNextPos(client, { workspace_id: values.workspace_id });
+const ZCreateBoard = ZBoard.pick({ workspace_id: true, name_: true });
+export const createBoard = withDbErrorHandling("createBoard", async (client, values: z.infer<typeof ZCreateBoard>) => {
+  const next_pos = await getBoardsNextPos(client, { workspace_id: values.workspace_id });
 
-    await client.query("INSERT INTO boards(workspace_id, name_, pos) VALUES($1, $2, $3)", [
-      values.workspace_id,
-      values.name_,
-      next_pos,
-    ]);
-  }
-);
+  await client.query("INSERT INTO boards(workspace_id, name_, pos) VALUES($1, $2, $3)", [
+    values.workspace_id,
+    values.name_,
+    next_pos,
+  ]);
+});
 
 export const boardsRouter = t.router({
   getGBoards: t.procedure.input(ZGetBoards).query(async (opts) => {

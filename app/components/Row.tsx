@@ -1,6 +1,6 @@
 import { useState, type FC } from "react";
 import type z from "zod";
-import type { ZGetGroupDataResult, ZGroupCellExtended } from "~/schemas/groups";
+import type { ZGetGroupDataResult, ZGroup, ZGroupCellExtended } from "~/schemas/groups";
 import { Cell } from "./Cell";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "~/utils/trpc/trpc";
@@ -10,10 +10,9 @@ import RowCheckbox from "./RowCheckbox";
 
 const Row: FC<{
   row: z.infer<typeof ZGetGroupDataResult>;
-  board_id: number;
-  group_id: number;
+  group: z.infer<typeof ZGroup>;
   level: number;
-}> = ({ row, board_id, group_id, level }) => {
+}> = ({ row, group, level }) => {
   const [expanded, setExpanded] = useState(false);
 
   const trpc = useTRPC();
@@ -56,7 +55,7 @@ const Row: FC<{
               key={`${cell.column_id}_${cell.row_id}`}
               className="text-left border-t border-l border-neutral-700 w-60 min-w-60"
             >
-              <Cell cell={cell} board_id={board_id} />
+              <Cell cell={cell} board_id={group.board_id} />
             </div>
           );
         })}
@@ -72,7 +71,7 @@ const Row: FC<{
           <div className="flex w-full" style={{ paddingLeft: `${level === 0 ? 0 : 32}px` }}>
             <div className="border-l-2 translate-x-[1px] -my-2"></div>
             <div className="py-4 w-full">
-              <Group board_id={board_id} group_id={group_id} level={level + 1} parent_row_id={row.id} />
+              <Group group={group} level={level + 1} parent_row_id={row.id} />
             </div>
           </div>
         </>

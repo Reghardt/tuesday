@@ -12,7 +12,7 @@ export default function Component({ params }: Route.ComponentProps) {
 
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const getGroups = useQuery(
+  const getGroupsQuery = useQuery(
     trpc.groups.getGroups.queryOptions({
       board_id: Number(params.board_id),
     })
@@ -34,13 +34,10 @@ export default function Component({ params }: Route.ComponentProps) {
     <>
       <SelectedRowsStoreProvider key={Number(params.board_id)}>
         <div className="flex flex-col gap-8 p-2 bg-neutral-900">
-          <div>Workspace</div>
-
-          {getGroups.data?.map((group) => {
+          {getGroupsQuery.data?.map((group) => {
             return (
               <div key={group.id}>
-                <div>{group.name_}</div>
-                <Group group_id={group.id} board_id={Number(params.board_id)} level={0} parent_row_id={null} />
+                <Group group={group} level={0} parent_row_id={null} />
               </div>
             );
           })}

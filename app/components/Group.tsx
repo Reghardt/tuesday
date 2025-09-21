@@ -7,13 +7,15 @@ import Row from "./Row";
 import Chevron from "./icons/Chevron";
 import PlusIcon from "./icons/PlusIcon";
 import LevelCheckbox from "./LevelCheckbox";
+import type z from "zod";
+import type { ZGroup } from "~/schemas/groups";
+import GroupName from "./GroupName";
 
 const Group: FC<{
-  board_id: number;
-  group_id: number;
+  group: z.infer<typeof ZGroup>;
   level: number;
   parent_row_id: number | null;
-}> = ({ board_id, group_id, level, parent_row_id }) => {
+}> = ({ group, level, parent_row_id }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -21,7 +23,7 @@ const Group: FC<{
 
   const getGroupColumnsQuery = useQuery(
     trpc.columns.getColumns.queryOptions({
-      board_id: board_id,
+      board_id: group.board_id,
       level: level,
     })
   );
@@ -31,7 +33,7 @@ const Group: FC<{
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.groups.getGroupData.queryKey({
-            group_id: group_id,
+            group_id: group.id,
             parent_row_id: parent_row_id,
           }),
         });
@@ -41,7 +43,7 @@ const Group: FC<{
 
   const getGroupDataQuery = useQuery(
     trpc.groups.getGroupData.queryOptions({
-      group_id: group_id,
+      group_id: group.id,
       parent_row_id: parent_row_id,
     })
   );
@@ -49,6 +51,8 @@ const Group: FC<{
   function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
     return (
       <div className="w-full">
+        {level === 0 ? <GroupName name={group.name_} group_id={group.id} /> : <></>}
+
         <div className="grid grid-cols-[auto_1fr] w-full ">
           {level > 0 ? (
             <div className="w-8">
@@ -60,7 +64,7 @@ const Group: FC<{
           <div className="flex w-full">
             <div className="border-l-4"></div>
             <div className="min-w-8 border-t border-l border-neutral-700 flex justify-center items-center">
-              <LevelCheckbox rows={rows} group_id={group_id} level={level} />
+              <LevelCheckbox rows={rows} group_id={group.id} level={level} />
             </div>
             <div className="min-w-8 border-t border-l border-neutral-700">{/* <Chevron /> */}</div>
             {columns?.map((column) => {
@@ -73,7 +77,7 @@ const Group: FC<{
             <div className="text-left border-t border-l border-neutral-700 w-full p-1">
               <button
                 className=" font-light text-white rounded-full hover:bg-neutral-700 h-full aspect-square flex items-center justify-center"
-                onClick={() => navigate(`createColumn/${group_id}/${level}`)}
+                onClick={() => navigate(`createColumn/${group.id}/${level}`)}
               >
                 <PlusIcon />
               </button>
@@ -82,7 +86,7 @@ const Group: FC<{
         </div>
 
         {rows?.map((row) => (
-          <Row key={row.id} row={row} board_id={board_id} group_id={group_id} level={level} />
+          <Row key={row.id} row={row} group={group} level={level} />
         ))}
       </div>
     );
@@ -108,7 +112,7 @@ const Group: FC<{
               className="font-light flex gap-2 hover:bg-neutral-800 rounded m-1 pr-2 text-neutral-500"
               onClick={() => {
                 createRowMutation.mutate({
-                  group_id: group_id,
+                  group_id: group.id,
                   level: level,
                   parent_row_id,
                 });

@@ -13,6 +13,13 @@ export const ZGroup = z.object({
   pos: z.number(),
 });
 
+const ZGetGroupName = ZGroup.pick({ id: true });
+const getGroupName = withDbErrorHandling("getGroupName", async (client, values: z.infer<typeof ZGetGroupName>) => {
+  const res = await client.query("SELECT name_ from groups WHERE id = $1", [values.id]);
+
+  return ZGroup.pick({ name_: true }).array().parse(res.rows)[0];
+});
+
 const ZGetGroups = ZGroup.pick({
   board_id: true,
 });
@@ -22,17 +29,16 @@ export const getGroups = withDbErrorHandling("getGroups", async (client, values:
   return ZGroup.array().parse(res.rows);
 });
 
-const ZGetGroup = ZGroup.pick({
-  id: true,
-});
-export const getWorkspaceBoardGroup = withDbErrorHandling(
-  "getGroups",
-  async (client, values: z.infer<typeof ZGetGroup>) => {
-    const res = await client.query("SELECT * from groups WHERE id = $1", [values.id]);
-
-    return ZGroup.array().parse(res.rows)[0];
-  }
-);
+// const ZGetWorkspaceBoardGroup = ZGroup.pick({
+//   id: true,
+// });
+// export const getWorkspaceBoardGroup = withDbErrorHandling(
+//   "getGroups",
+//   async (client, values: z.infer<typeof ZGetGroup>) => {
+//     const res = await client.query("SELECT * from groups WHERE id = $1", [values.id]);
+//     return ZGroup.array().parse(res.rows)[0];
+//   }
+// );
 
 const ZGetGroupsNextPos = ZGroup.pick({
   board_id: true,
@@ -136,13 +142,13 @@ export const getRows = withDbErrorHandling("getRows", async (client, values: z.i
   const res = await client.query(
     `
       SELECT
-        wbgr.id,
-        wbgr.group_id,
-        wbgr.level,
-        wbgr.pos,
-        wbgr.parent_row_id
+        rows.id,
+        rows.group_id,
+        rows.level,
+        rows.pos,
+        rows.parent_row_id
       FROM groups
-      JOIN rows AS wbgr ON wbgr.group_id = groups.id
+      JOIN rows ON rows.group_id = groups.id
       WHERE board_id = $1 AND level = $2
       `,
     [values.board_id, values.level]
@@ -151,7 +157,19 @@ export const getRows = withDbErrorHandling("getRows", async (client, values: z.i
   return ZRows.array().parse(res.rows);
 });
 
+const ZSetGroupName = ZGroup.pick({ id: true, name_: true });
+const setGroupName = withDbErrorHandling("setGroupName", async (client, values: z.infer<typeof ZSetGroupName>) => {
+  await client.query("UPDATE groups SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
+});
+
 export const groupsRouter = t.router({
+  getGroupName: t.procedure.input(ZGetGroupName).query(async (opts) => {
+    return await withTransaction((client) =>
+      getGroupName(client, {
+        id: opts.input.id,
+      })
+    );
+  }),
   getGroups: t.procedure.input(ZGetGroups).query(async (opts) => {
     return await withTransaction((client) =>
       getGroups(client, {
@@ -174,4 +192,13 @@ export const groupsRouter = t.router({
         await getGroupData(client, { group_id: opts.input.group_id, parent_row_id: opts.input.parent_row_id })
     );
   }),
+
+  setGroupName: t.procedure
+    .input(ZSetGroupName)
+    .mutation(
+      async (opts) =>
+        await withTransaction(
+          async (client) => await setGroupName(client, { id: opts.input.id, name_: opts.input.name_ })
+        )
+    ),
 });

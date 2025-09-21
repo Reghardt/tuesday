@@ -38,17 +38,6 @@ const ColumnHeading: FC<{ column: z.infer<typeof ZColumn> }> = ({ column }) => {
         type="text"
         className="p-1 focus:outline-hidden"
       />
-      {/* <button
-        className=" text-red-700 font-light hover:bg-red-300 border-l border-neutral-700"
-        onClick={() => {
-          deleteColumnMutation.mutate({
-            id: column.id,
-            board_id: column.board_id,
-          });
-        }}
-      >
-        <CloseIcon />
-      </button> */}
 
       <div className="text-left border-l border-neutral-700 w-full p-1">
         <button
