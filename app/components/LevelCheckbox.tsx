@@ -8,7 +8,7 @@ const LevelCheckbox: FC<{
   group_id: number;
   level: number;
 }> = ({ rows, group_id, level }) => {
-  const groupLevelSelections = useSelectedRowsStore((state) => state.group_level.get(`${group_id}-${level}`));
+  const groupLevelSelections = useSelectedRowsStore((state) => state.group_levels.get(`${group_id}-${level}`));
   const select = useSelectedRowsStore((state) => state.select);
   const deselect = useSelectedRowsStore((state) => state.deselect);
 

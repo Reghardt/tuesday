@@ -20,7 +20,7 @@ const Row: FC<{
   const queryClient = useQueryClient();
 
   const deleteRowMutation = useMutation(
-    trpc.rows.deleteGroupRow.mutationOptions({
+    trpc.rows.deleteRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.groups.getGroupData.queryKey(),
@@ -67,7 +67,6 @@ const Row: FC<{
               onClick={() =>
                 deleteRowMutation.mutate({
                   id: row.id,
-                  group_id: row.group_id,
                 })
               }
               className="text-red-700 hover:bg-red-300 w-26 m-1 rounded "

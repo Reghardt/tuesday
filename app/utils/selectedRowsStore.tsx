@@ -5,22 +5,23 @@ import { immer } from "zustand/middleware/immer";
 // `${group_id}-${level}`
 type SelectedRowsStoreMapKey = `${number}-${number}`;
 // `${group_id}-${level}`, row_id
-type SelectedRowsStoreState = { group_level: Map<SelectedRowsStoreMapKey, Map<number, null>> };
+type SelectedRowsStoreState = { group_levels: Map<SelectedRowsStoreMapKey, Map<number, null>> };
 
 type SelectedRowsStoreActions = {
   select: (group_id: number, level: number, row_id: number) => void;
   deselect: (group_id: number, level: number, row_id: number) => void;
   isSelected: (group_id: number, level: number, row_id: number) => boolean;
   getGroupLevelSelections: (group_id: number, level: number) => Map<number, null> | undefined;
+  clear: () => void;
 };
 
 type SelectedRowsStore = SelectedRowsStoreState & SelectedRowsStoreActions;
 
 const createPositionStore = () => {
   return createStore<SelectedRowsStore>()((set, get) => ({
-    group_level: new Map<SelectedRowsStoreMapKey, Map<number, null>>(),
+    group_levels: new Map<SelectedRowsStoreMapKey, Map<number, null>>(),
     select: (group_id, level, row_id) =>
-      set(({ group_level }) => {
+      set(({ group_levels: group_level }) => {
         console.log(group_id, level, row_id);
         const newMap = new Map(group_level);
 
@@ -28,10 +29,10 @@ const createPositionStore = () => {
           newMap.set(`${group_id}-${level}`, new Map<number, null>());
         }
         newMap.set(`${group_id}-${level}`, new Map(newMap.get(`${group_id}-${level}`)).set(row_id, null));
-        return { group_level: newMap };
+        return { group_levels: newMap };
       }),
     deselect: (group_id, level, row_id) =>
-      set(({ group_level }) => {
+      set(({ group_levels: group_level }) => {
         const newMap = new Map(group_level);
 
         if (newMap.get(`${group_id}-${level}`) === undefined) {
@@ -42,10 +43,14 @@ const createPositionStore = () => {
         deep.delete(row_id);
         newMap.set(`${group_id}-${level}`, deep);
 
-        return { group_level: newMap };
+        return { group_levels: newMap };
       }),
-    isSelected: (group_id, level, row_id) => get().group_level.get(`${group_id}-${level}`)?.has(row_id) ?? false,
-    getGroupLevelSelections: (group_id, level) => get().group_level.get(`${group_id}-${level}`),
+    isSelected: (group_id, level, row_id) => get().group_levels.get(`${group_id}-${level}`)?.has(row_id) ?? false,
+    getGroupLevelSelections: (group_id, level) => get().group_levels.get(`${group_id}-${level}`),
+    clear: () =>
+      set(({ group_levels }) => {
+        return { group_levels: new Map<SelectedRowsStoreMapKey, Map<number, null>>() };
+      }),
   }));
 };
 

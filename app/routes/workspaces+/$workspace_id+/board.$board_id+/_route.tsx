@@ -5,6 +5,7 @@ import type { Route } from "./+types/_route";
 import { Outlet } from "react-router";
 import Group from "~/components/Group";
 import { SelectedRowsStoreProvider } from "~/utils/selectedRowsStore";
+import RowActions from "~/components/RowActions";
 
 export default function Component({ params }: Route.ComponentProps) {
   const [groupName, setGroupName] = useState("");
@@ -68,6 +69,7 @@ export default function Component({ params }: Route.ComponentProps) {
         </div>
 
         <Outlet />
+        <RowActions />
       </SelectedRowsStoreProvider>
     </>
   );

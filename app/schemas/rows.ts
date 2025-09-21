@@ -141,10 +141,14 @@ const createRow = withDbErrorHandling("createRow", async (client, values: z.infe
 
 const ZDeleteRow = ZRows.pick({
   id: true,
-  group_id: true,
 });
 const deleteRow = withDbErrorHandling("deleteRow", async (client, values: z.infer<typeof ZDeleteRow>) => {
-  await client.query(`DELETE FROM rows WHERE id = $1 AND group_id = $2`, [values.id, values.group_id]);
+  await client.query(`DELETE FROM rows WHERE id = $1`, [values.id]);
+});
+
+const ZDeleteRows = ZRows.pick({}).extend({ ids: z.number().array() });
+const deleteRows = withDbErrorHandling("deleteRows", async (client, values: z.infer<typeof ZDeleteRows>) => {
+  await client.query(`DELETE FROM rows WHERE id = ANY($1)`, [values.ids]);
 });
 
 export const rowsRouter = t.router({
@@ -157,11 +161,17 @@ export const rowsRouter = t.router({
       });
     });
   }),
-  deleteGroupRow: t.procedure.input(ZDeleteRow).mutation(async (opts) => {
+  deleteRow: t.procedure.input(ZDeleteRow).mutation(async (opts) => {
     await withTransaction(async (client) => {
       await deleteRow(client, {
         id: opts.input.id,
-        group_id: opts.input.group_id,
+      });
+    });
+  }),
+  deleteRows: t.procedure.input(ZDeleteRows).mutation(async (opts) => {
+    await withTransaction(async (client) => {
+      await deleteRows(client, {
+        ids: opts.input.ids,
       });
     });
   }),
