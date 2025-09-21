@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS groups(
     board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
     name_ TEXT NOT NULL,
     pos INTEGER NOT NULL,
+    color TEXT NOT NULL,
     UNIQUE(board_id, pos)
 );
 

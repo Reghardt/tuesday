@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "~/utils/trpc/trpc";
 import Group from "./Group";
 import Chevron from "./icons/Chevron";
+import RowCheckbox from "./RowCheckbox";
 
 const Row: FC<{
   row: z.infer<typeof ZGetGroupDataResult>;
@@ -42,7 +43,7 @@ const Row: FC<{
         <div className="border-l-4"></div>
 
         <div className="min-w-8 border-t border-l border-neutral-700 flex justify-center items-center ">
-          <input type="checkbox" className="scale-130"></input>
+          <RowCheckbox group_id={row.group_id} level={row.level} row_id={row.id} />
         </div>
         <div className="text-left border-t border-l border-neutral-700 w-8 min-w-8 flex items-center justify-center">
           <button onClick={() => setExpanded((expanded) => !expanded)}>
