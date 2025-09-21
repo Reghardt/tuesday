@@ -61,22 +61,7 @@ const Row: FC<{
           );
         })}
 
-        {row.cells_arr.length > 0 ? (
-          <div className="border-t border-l border-neutral-700 w-full flex">
-            <button
-              onClick={() =>
-                deleteRowMutation.mutate({
-                  id: row.id,
-                })
-              }
-              className="text-red-700 hover:bg-red-300 w-26 m-1 rounded "
-            >
-              Delete Row
-            </button>
-          </div>
-        ) : (
-          <></>
-        )}
+        {row.cells_arr.length > 0 ? <div className="border-t border-l border-neutral-700 w-full flex"></div> : <></>}
       </div>
       {expanded ? (
         <>
