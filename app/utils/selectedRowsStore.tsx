@@ -22,7 +22,6 @@ const createPositionStore = () => {
     group_levels: new Map<SelectedRowsStoreMapKey, Map<number, null>>(),
     select: (group_id, level, row_id) =>
       set(({ group_levels: group_level }) => {
-        console.log(group_id, level, row_id);
         const newMap = new Map(group_level);
 
         if (newMap.get(`${group_id}-${level}`) === undefined) {

@@ -12,9 +12,8 @@ const LevelCheckbox: FC<{
   const select = useSelectedRowsStore((state) => state.select);
   const deselect = useSelectedRowsStore((state) => state.deselect);
 
-  console.log(groupLevelSelections?.size);
-
-  const checked = rows?.length === groupLevelSelections?.size;
+  const checked =
+    rows !== undefined && groupLevelSelections !== undefined ? rows.length === groupLevelSelections.size : false;
 
   function selectAll() {
     if (rows !== undefined && rows.length > 0) {

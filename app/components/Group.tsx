@@ -4,7 +4,6 @@ import { useTRPC } from "~/utils/trpc/trpc";
 import ColumnHeading from "./ColumnHeading";
 import { useNavigate } from "react-router";
 import Row from "./Row";
-import Chevron from "./icons/Chevron";
 import PlusIcon from "./icons/PlusIcon";
 import LevelCheckbox from "./LevelCheckbox";
 import type z from "zod";
@@ -101,7 +100,6 @@ const Group: FC<{
           {level > 0 ? (
             <div className="w-8">
               {/* <div className="border-b h-4 rounded-bl-lg border-l-2 translate-x-[-1px] w-[calc(100%+1px)]"></div> */}
-              <div className=""></div>
             </div>
           ) : (
             <div></div>
@@ -124,7 +122,10 @@ const Group: FC<{
           </div>
         </div>
       ) : (
-        <></>
+        <div className="grid grid-cols-[auto_1fr] w-full  ">
+          {level > 0 ? <div className="w-8"></div> : <div></div>}
+          <div className="border-t border-neutral-700 w-full "></div>
+        </div>
       )}
     </>
   );

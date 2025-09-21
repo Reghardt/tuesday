@@ -6,7 +6,6 @@ const RowCheckbox: FC<{ group_id: number; level: number; row_id: number }> = ({ 
   const select = useSelectedRowsStore((state) => state.select);
   const deselect = useSelectedRowsStore((state) => state.deselect);
 
-  //   console.log(isSelected);
   return (
     <input
       type="checkbox"

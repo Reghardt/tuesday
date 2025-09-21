@@ -30,7 +30,6 @@ const ZGetRowsNextPos = ZRows.pick({
 const getRowsNextPos = withDbErrorHandling(
   "getGroupRowsNextPos",
   async (client, values: z.infer<typeof ZGetRowsNextPos>) => {
-    console.log(values);
     const res = await client.query(
       `
         SELECT COALESCE(MAX(pos), -1) + 1 AS next_pos
