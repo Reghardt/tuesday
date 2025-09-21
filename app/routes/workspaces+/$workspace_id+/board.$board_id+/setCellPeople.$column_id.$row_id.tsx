@@ -42,10 +42,10 @@ export default function Component({ params }: Route.ComponentProps) {
 
   return (
     <div className="absolute left-0 top-0 w-full h-full flex items-center justify-center bg-gray-600/50">
-      <div className=" bg-black p-2">
+      <div className=" bg-black p-2 w-60 h-80">
         <div>
           <button onClick={() => navigate(-1)}>Cancel</button>
-          <div>Status</div>
+          <div>People</div>
 
           {getUsersQuery.data?.map((user) => {
             return (
@@ -65,7 +65,7 @@ export default function Component({ params }: Route.ComponentProps) {
           })}
 
           <div className="flex flex-col">
-            <div className="flex flex-col">
+            {/* <div className="flex flex-col">
               <label>Name</label>
               <input
                 type="text"
@@ -73,13 +73,13 @@ export default function Component({ params }: Route.ComponentProps) {
                 onChange={(e) => setStatusName(e.target.value)}
                 className="border"
               />
-            </div>
-            <div className="flex flex-col">
+            </div> */}
+            {/* <div className="flex flex-col">
               <label>Color</label>
               <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className=" w-full h-10" />
-            </div>
+            </div> */}
 
-            <button
+            {/* <button
               onClick={() =>
                 createStatusMutation.mutate({
                   board_id: Number(params.board_id),
@@ -89,7 +89,7 @@ export default function Component({ params }: Route.ComponentProps) {
               }
             >
               Create
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

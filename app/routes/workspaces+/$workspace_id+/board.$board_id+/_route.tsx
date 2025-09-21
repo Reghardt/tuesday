@@ -57,6 +57,7 @@ export default function Component({ params }: Route.ComponentProps) {
                 createGroupMutation.mutate({
                   board_id: Number(params.board_id),
                   name_: groupName,
+                  color: "#ced4de",
                 })
               }
             >

@@ -11,6 +11,7 @@ export const ZGroup = z.object({
   board_id: z.number(),
   name_: z.string().trim().min(1),
   pos: z.number(),
+  color: z.string(),
 });
 
 const ZGetGroupName = ZGroup.pick({ id: true });
@@ -28,17 +29,6 @@ export const getGroups = withDbErrorHandling("getGroups", async (client, values:
 
   return ZGroup.array().parse(res.rows);
 });
-
-// const ZGetWorkspaceBoardGroup = ZGroup.pick({
-//   id: true,
-// });
-// export const getWorkspaceBoardGroup = withDbErrorHandling(
-//   "getGroups",
-//   async (client, values: z.infer<typeof ZGetGroup>) => {
-//     const res = await client.query("SELECT * from groups WHERE id = $1", [values.id]);
-//     return ZGroup.array().parse(res.rows)[0];
-//   }
-// );
 
 const ZGetGroupsNextPos = ZGroup.pick({
   board_id: true,
@@ -62,6 +52,7 @@ const getGroupsNextPos = withDbErrorHandling(
 const ZCreateGroupWithWorkspaceParent = ZGroup.pick({
   board_id: true,
   name_: true,
+  color: true,
 });
 export const createGroup = withDbErrorHandling(
   "createGroup",
@@ -70,10 +61,11 @@ export const createGroup = withDbErrorHandling(
       board_id: values.board_id,
     });
 
-    return await client.query("INSERT INTO groups(board_id, name_, pos) VALUES($1, $2, $3)", [
+    return await client.query("INSERT INTO groups(board_id, name_, pos, color) VALUES($1, $2, $3, $4)", [
       values.board_id,
       values.name_,
       nextPos,
+      values.color,
     ]);
   }
 );
@@ -162,6 +154,18 @@ const setGroupName = withDbErrorHandling("setGroupName", async (client, values: 
   await client.query("UPDATE groups SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
 });
 
+const ZGetGroup = ZGroup.pick({
+  id: true,
+});
+export const getWorkspaceBoardGroup = withDbErrorHandling(
+  "getGroups",
+  async (client, values: z.infer<typeof ZGetGroup>) => {
+    const res = await client.query("SELECT * from groups WHERE id = $1", [values.id]);
+
+    return ZGroup.array().parse(res.rows)[0];
+  }
+);
+
 export const groupsRouter = t.router({
   getGroupName: t.procedure.input(ZGetGroupName).query(async (opts) => {
     return await withTransaction((client) =>
@@ -182,6 +186,7 @@ export const groupsRouter = t.router({
       createGroup(client, {
         board_id: opts.input.board_id,
         name_: opts.input.name_,
+        color: opts.input.color,
       })
     );
   }),

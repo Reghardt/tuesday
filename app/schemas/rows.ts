@@ -12,7 +12,7 @@ import {
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
-import { getWorkspaceBoardGroup, ZGroup } from "./groups";
+import { getWorkspaceBoardGroup } from "./groups";
 
 export const ZRows = z.object({
   id: z.number(),
