@@ -1,5 +1,9 @@
 import z from "zod";
-import { getRowId, withDbErrorHandling, withTransaction } from "~/utils/pool.server";
+import {
+  getRowId,
+  withDbErrorHandling,
+  withTransaction,
+} from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 import {
   dateColumnTypeCodec,
@@ -38,7 +42,8 @@ const getColumnsNextPos = withDbErrorHandling(
       [values.board_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
+      .next_pos;
   }
 );
 
@@ -46,19 +51,22 @@ const ZGetColumns = ZColumn.pick({
   board_id: true,
   level: true,
 });
-export const getColumns = withDbErrorHandling("getColumns", async (client, values: z.infer<typeof ZGetColumns>) => {
-  const res = await client.query(
-    `
+export const getColumns = withDbErrorHandling(
+  "getColumns",
+  async (client, values: z.infer<typeof ZGetColumns>) => {
+    const res = await client.query(
+      `
       SELECT
         *
       from columns as wbc
       where wbc.board_id = $1 AND wbc.level = $2
       `,
-    [values.board_id, values.level]
-  );
+      [values.board_id, values.level]
+    );
 
-  return ZColumn.array().parse(res.rows);
-});
+    return ZColumn.array().parse(res.rows);
+  }
+);
 
 const ZCreateColumn = ZColumn.pick({
   board_id: true,
@@ -78,7 +86,14 @@ export const createColumn = withDbErrorHandling(
     const column_id = getRowId(
       await client.query(
         "INSERT INTO columns(board_id, level, name_, column_type, type_properties, pos) VALUES($1, $2, $3, $4, $5, $6) RETURNING *",
-        [values.board_id, values.level, values.name_, values.column_type, {}, nextPos]
+        [
+          values.board_id,
+          values.level,
+          values.name_,
+          values.column_type,
+          {},
+          nextPos,
+        ]
       )
     );
 
@@ -154,7 +169,10 @@ const ZDeleteColumn = ZColumn.pick({
 export const deleteColumn = withDbErrorHandling(
   "deleteColumn",
   async (client, values: z.infer<typeof ZDeleteColumn>) => {
-    await client.query("DELETE FROM columns WHERE id = $1 AND board_id = $2", [values.id, values.board_id]);
+    await client.query("DELETE FROM columns WHERE id = $1 AND board_id = $2", [
+      values.id,
+      values.board_id,
+    ]);
   }
 );
 
@@ -162,9 +180,29 @@ const ZSetColumnName = ZColumn.pick({
   id: true,
   name_: true,
 });
-const setColumnName = withDbErrorHandling("setColumnName", async (client, values: z.infer<typeof ZSetColumnName>) => {
-  await client.query("UPDATE columns SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
+const setColumnName = withDbErrorHandling(
+  "setColumnName",
+  async (client, values: z.infer<typeof ZSetColumnName>) => {
+    await client.query("UPDATE columns SET name_ = $1 WHERE id = $2", [
+      values.name_,
+      values.id,
+    ]);
+  }
+);
+
+const ZGetColumnName = ZColumn.pick({
+  id: true,
 });
+const getColumnName = withDbErrorHandling(
+  "getColumnName",
+  async (client, values: z.infer<typeof ZGetColumnName>) => {
+    const res = await client.query("SELECT name_ FROM columns WHERE id = $1", [
+      values.id,
+    ]);
+
+    return z.object({ name_: z.string() }).array().parse(res.rows)[0].name_;
+  }
+);
 
 export const columnsRouter = t.router({
   createColumn: t.procedure.input(ZCreateColumn).mutation(async (opts) => {
@@ -194,11 +232,18 @@ export const columnsRouter = t.router({
       })
     );
   }),
-  setGroupColumnName: t.procedure.input(ZSetColumnName).mutation(async (opts) => {
+  setColumnName: t.procedure.input(ZSetColumnName).mutation(async (opts) => {
     return await withTransaction((client) =>
       setColumnName(client, {
         id: opts.input.id,
         name_: opts.input.name_,
+      })
+    );
+  }),
+  getColumnName: t.procedure.input(ZGetColumnName).query(async (opts) => {
+    return await withTransaction((client) =>
+      getColumnName(client, {
+        id: opts.input.id,
       })
     );
   }),
