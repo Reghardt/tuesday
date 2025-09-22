@@ -47,10 +47,17 @@ const Group: FC<{
     })
   );
 
-  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
+  function createTable(
+    rows: typeof getGroupDataQuery.data,
+    columns: typeof getGroupColumnsQuery.data
+  ) {
     return (
       <div className="w-full">
-        {level === 0 ? <GroupName name={group.name_} group_id={group.id} /> : <></>}
+        {level === 0 ? (
+          <GroupName name={group.name_} group_id={group.id} />
+        ) : (
+          <></>
+        )}
 
         <div className="grid grid-cols-[auto_1fr] w-full ">
           {level > 0 ? (
@@ -62,13 +69,16 @@ const Group: FC<{
           )}
           <div className="flex w-full">
             <div className="border-l-4"></div>
-            <div className="min-w-8 border-t border-l border-neutral-700 flex justify-center items-center">
+            <div className="min-w-8 border-t border-neutral-700 flex justify-center items-center">
               <LevelCheckbox rows={rows} group_id={group.id} level={level} />
             </div>
-            <div className="min-w-8 border-t border-l border-neutral-700">{/* <Chevron /> */}</div>
+            <div className="min-w-8 border-t border-l border-neutral-700"></div>
             {columns?.map((column) => {
               return (
-                <div key={column.id} className="text-left border-t border-l border-neutral-700 w-60">
+                <div
+                  key={column.id}
+                  className="text-left border-t border-l border-neutral-700 w-60"
+                >
                   <ColumnHeading column={column} />
                 </div>
               );

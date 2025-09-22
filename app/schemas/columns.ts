@@ -58,8 +58,9 @@ export const getColumns = withDbErrorHandling(
       `
       SELECT
         *
-      from columns as wbc
-      where wbc.board_id = $1 AND wbc.level = $2
+      FROM columns
+      WHERE columns.board_id = $1 AND columns.level = $2
+      ORDER BY columns.pos ASC
       `,
       [values.board_id, values.level]
     );
