@@ -159,6 +159,14 @@ export const createColumn = withDbErrorHandling(
           content: { updates: 0 },
         });
       }
+    } else if (values.column_type === ZEGroupColumnTypes.enum.file) {
+      for (let i = 0; i < group_rows.length; i++) {
+        await createCell(client, {
+          row_id: group_rows[i].id,
+          column_id: column_id,
+          content: { files: 0 },
+        });
+      }
     }
   }
 );

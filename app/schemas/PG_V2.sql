@@ -115,11 +115,32 @@ create table IF NOT EXISTS "verification" ("id" text not null primary key, "iden
 
 CREATE TABLE IF NOT EXISTS updates(
     id SERIAL PRIMARY KEY,
-    row_id INTEGER NOT NULL,
-    column_id INTEGER NOT NULL,    
+    row_id INTEGER NOT NULL REFERENCES rows(id),  
+    column_id INTEGER NOT NULL REFERENCES columns(id),
+    pos INTEGER NOT NULL CHECK(pos >= 1)
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     user_id TEXT NOT NULL REFERENCES "user"(id), -- user should not be able to be deleted if they wrote an update, no cascade
+    note TEXT,
+    parent_update_id INTEGER REFERENCES updates(id) ON DELETE CASCADE,
+    FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS update_files(
+    id SERIAL PRIMARY KEY,
+    update_id INTEGER NOT NULL REFERENCES updates(id),  
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    name_ TEXT NOT NULL,
+    FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS files(
+    id SERIAL PRIMARY KEY,
+    row_id INTEGER NOT NULL REFERENCES rows(id),  
+    column_id INTEGER NOT NULL REFERENCES columns(id),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    user_id TEXT NOT NULL REFERENCES "user"(id), -- user should not be able to be deleted if they wrote an update, no cascade
+    name_ TEXT NOT NULL,
     note TEXT,
     FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
 );

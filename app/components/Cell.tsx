@@ -14,9 +14,13 @@ import {
 import type { ZGroupCellExtended } from "~/schemas/groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.cells.setCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -34,9 +38,13 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) =>
   );
 };
 
-const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.cells.setCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -54,9 +62,13 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) 
   );
 };
 
-const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.cells.setCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -90,7 +102,9 @@ const StatusCell: FC<{
     staleTime: 0,
   });
 
-  const getStatusesQuery = useQuery(trpc.statuses.getStatuses.queryOptions({ board_id }));
+  const getStatusesQuery = useQuery(
+    trpc.statuses.getStatuses.queryOptions({ board_id })
+  );
 
   let text = "No Status";
   let color = "#4a5565";
@@ -144,7 +158,9 @@ const PriorityCell: FC<{
   let text = "No Status";
   let color = "#4a5565";
 
-  const priority_id = priorityColumnTypeCodec.decode(getCellQuery.data?.content);
+  const priority_id = priorityColumnTypeCodec.decode(
+    getCellQuery.data?.content
+  );
 
   if (priority_id !== null) {
     for (let i = 0; i < (getPrioritiesQuery.data?.length ?? 0); i++) {
@@ -248,6 +264,25 @@ const UpdatesCell: FC<{
   );
 };
 
+const FilesCell: FC<{
+  cell: z.infer<typeof ZGroupCellExtended>;
+  board_id: number;
+}> = ({ cell, board_id }) => {
+  const trpc = useTRPC();
+  const navigate = useNavigate();
+
+  return (
+    <button
+      onClick={() => {
+        navigate(`files/${cell.column_id}/${cell.row_id}`);
+      }}
+      className="w-full h-full p-1"
+    >
+      {cell.content.files}
+    </button>
+  );
+};
+
 export const Cell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
   board_id: number;
@@ -266,6 +301,8 @@ export const Cell: FC<{
     return <PeopleCell cell={cell} board_id={board_id} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.updates) {
     return <UpdatesCell cell={cell} board_id={board_id} />;
+  } else if (cell.column_type === ZEGroupColumnTypes.enum.file) {
+    return <FilesCell cell={cell} board_id={board_id} />;
   } else {
     return <div>UNKNOWN TYPE</div>;
   }

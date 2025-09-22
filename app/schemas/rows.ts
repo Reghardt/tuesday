@@ -127,6 +127,12 @@ const createRow = withDbErrorHandling(
           column_id: columns[i].id,
           content: { updates: 0 },
         });
+      } else if (columns[i].column_type === ZEGroupColumnTypes.enum.file) {
+        await createCell(client, {
+          row_id: group_row_id,
+          column_id: columns[i].id,
+          content: { files: 0 },
+        });
       }
     }
   }
