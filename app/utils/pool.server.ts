@@ -1,17 +1,30 @@
 import { Pool, type PoolClient, type QueryResult } from "pg";
 import invariant from "tiny-invariant";
 import z from "zod";
+import { ensureDatabase } from "~/utils/dbProvision.server";
 
 invariant(process.env.PG_HOST, "PG_HOST undefined");
 invariant(process.env.PG_USER, "PG_USER undefined");
 invariant(process.env.PG_PASSWORD, "PG_PASSWORD undefined");
 invariant(process.env.PG_DATABASE, "PG_DATABASE undefined");
 
+// Ensure DB exists and schema is applied on server start (idempotent)
+await ensureDatabase({
+  host: process.env.PG_HOST!,
+  user: process.env.PG_USER!,
+  password: process.env.PG_PASSWORD!,
+  database: process.env.PG_DATABASE!,
+  port: process.env.PG_PORT ? Number(process.env.PG_PORT) : 5432,
+  ssl: process.env.PG_SSL === "true",
+});
+
 export const pool = new Pool({
   host: process.env.PG_HOST,
   user: process.env.PG_USER,
   password: process.env.PG_PASSWORD,
   database: process.env.PG_DATABASE,
+  port: process.env.PG_PORT ? Number(process.env.PG_PORT) : 5432,
+  ssl: process.env.PG_SSL === "true" ? { rejectUnauthorized: false } : undefined,
   min: 2,
   max: 10,
   idleTimeoutMillis: 30000,

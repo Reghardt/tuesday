@@ -166,6 +166,11 @@ export const getWorkspaceBoardGroup = withDbErrorHandling(
   }
 );
 
+const ZDeleteGroup = ZGroup.pick({ id: true });
+const deleteGroup = withDbErrorHandling("deleteGroup", async (client, values: z.infer<typeof ZDeleteGroup>) => {
+  await client.query("DELETE FROM groups WHERE id = $1", [values.id]);
+});
+
 export const groupsRouter = t.router({
   getGroupName: t.procedure.input(ZGetGroupName).query(async (opts) => {
     return await withTransaction((client) =>
@@ -206,4 +211,7 @@ export const groupsRouter = t.router({
           async (client) => await setGroupName(client, { id: opts.input.id, name_: opts.input.name_ })
         )
     ),
+  deleteGroup: t.procedure
+    .input(ZDeleteGroup)
+    .mutation(async (opts) => await withTransaction(async (client) => deleteGroup(client, { id: opts.input.id }))),
 });

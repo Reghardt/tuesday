@@ -243,7 +243,7 @@ const UpdatesCell: FC<{
       }}
       className="w-full h-full p-1"
     >
-      {getCellQuery.data.content.updates}
+      {(getCellQuery.data as any)?.content?.updates ?? 0}
     </button>
   );
 };
