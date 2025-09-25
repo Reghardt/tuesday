@@ -144,5 +144,6 @@ CREATE TABLE IF NOT EXISTS cell_files(
     name_ TEXT NOT NULL,
     extension TEXT NOT NULL,
     note TEXT,
-    FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
+    FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE,
+    UNIQUE(column_id, row_id, name_)
 );

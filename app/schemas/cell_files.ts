@@ -1,5 +1,6 @@
 import z from "zod";
-import { withDbErrorHandling } from "~/utils/pool.server";
+import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
+import { t } from "~/utils/trpc/trpc.server";
 
 export const ZCellFile = z.object({
   id: z.number(),
@@ -55,3 +56,15 @@ export const getCellFiles = withDbErrorHandling(
     return ZCellFile.array().parse(res.rows);
   }
 );
+
+export const cellFilesRouter = t.router({
+  getCellFiles: t.procedure.input(ZGetCellFiles).query(async (opts) => {
+    return await withTransaction(
+      async (client) =>
+        await getCellFiles(client, {
+          column_id: opts.input.column_id,
+          row_id: opts.input.row_id,
+        })
+    );
+  }),
+});

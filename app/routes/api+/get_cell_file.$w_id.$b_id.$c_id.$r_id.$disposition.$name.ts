@@ -1,9 +1,9 @@
 import path from "path";
-import type { Route } from "./+types/get_cell_file";
 import z from "zod";
 import { readFile } from "fs/promises";
+import type { Route } from "./+types/get_cell_file.$w_id.$b_id.$c_id.$r_id.$disposition.$name";
 
-function getFileDepositPath(params: {
+function getFilePath(params: {
   workspace_id: number;
   board_id: number;
   column_id: number;
@@ -20,28 +20,25 @@ function getFileDepositPath(params: {
   return path.join(process.cwd(), "uploads", ...sections);
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  console.log("Action!");
+export async function loader({ request, params }: Route.LoaderArgs) {
+  console.log("Loader!");
 
-  const formData = await request.formData();
+  // const formData = await request.formData();
 
-  const workspace_id = z.coerce.number().parse(formData.get("workspace_id"));
-  const board_id = z.coerce.number().parse(formData.get("board_id"));
-  const column_id = z.coerce.number().parse(formData.get("column_id"));
-  const row_id = z.coerce.number().parse(formData.get("row_id"));
-  const name = z.string().parse(formData.get("name"));
-  //   formData.forEach((v, k) => {
-  //     console.log(k, v);
-  //   });
+  const workspace_id = z.coerce.number().parse(params.w_id);
+  const board_id = z.coerce.number().parse(params.b_id);
+  const column_id = z.coerce.number().parse(params.c_id);
+  const row_id = z.coerce.number().parse(params.r_id);
+  const disposition = z.string().parse(params.disposition);
+  const name = z.string().parse(params.name);
 
-  const filePath = getFileDepositPath({
+  const filePath = getFilePath({
     workspace_id,
     board_id,
     column_id,
     row_id,
     name,
   });
-  console.log(filePath);
 
   try {
     const fileBuffer = await readFile(filePath);
@@ -56,7 +53,7 @@ export async function action({ request }: Route.ActionArgs) {
       status: 200,
       headers: {
         "Content-Type": contentType,
-        "Content-Disposition": `inline; filename="${name}"`,
+        "Content-Disposition": `${disposition}; filename="${name}"`,
       },
     });
   } catch (err) {

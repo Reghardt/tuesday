@@ -1,27 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { redirect, useNavigate, useRevalidator } from "react-router";
-import { useTRPC } from "~/utils/trpc/trpc";
-import { useRef, useState, type FC, type JSX } from "react";
+import { redirect, useNavigate } from "react-router";
+import { Fragment, useState, type FC } from "react";
 import { getSessionUser } from "~/utils/auth.server";
 import CloseIcon from "~/components/icons/CloseIcon";
 import axios from "axios";
-import { getCellFiles } from "~/schemas/cell_files";
-import { withTransaction } from "~/utils/pool.server";
 import type { Route } from "./+types/files.$column_id.$row_id";
+import { useTRPC } from "~/utils/trpc/trpc";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-export async function loader({ request, params }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getSessionUser(request);
   if (user === null) throw redirect("");
 
-  const files = await withTransaction(
-    async (client) =>
-      await getCellFiles(client, {
-        column_id: Number(params.column_id),
-        row_id: Number(params.row_id),
-      })
-  );
-
-  return { user_id: user.id, files };
+  return { user_id: user.id };
 }
 
 export default function Component({
@@ -29,6 +19,14 @@ export default function Component({
   loaderData,
 }: Route.ComponentProps) {
   const navigate = useNavigate();
+  const trpc = useTRPC();
+
+  const getCellFilesQuery = useQuery(
+    trpc.cellFiles.getCellFiles.queryOptions({
+      column_id: Number(params.column_id),
+      row_id: Number(params.row_id),
+    })
+  );
 
   const [files, setFiles] = useState<File[]>([]);
 
@@ -36,45 +34,6 @@ export default function Component({
     const files: File[] = [];
     if (fileList) for (const file of fileList) files.push(file);
     setFiles(files);
-  }
-
-  async function getCellFile(
-    workspace_id: number,
-    board_id: number,
-    column_id: number,
-    row_id: number,
-    name: string
-  ) {
-    const res = await axios.postForm(
-      "http://localhost:5173/api/get_cell_file",
-      { workspace_id, board_id, column_id, row_id, name },
-      { responseType: "blob" }
-    );
-
-    const contentDisposition = res.headers["content-disposition"];
-    let filename = name;
-    if (contentDisposition) {
-      const match = contentDisposition.match(/filename="?([^"]+)"?/);
-      if (match?.[1]) {
-        filename = match[1];
-      }
-    }
-
-    const fileURL = URL.createObjectURL(res.data);
-
-    // 3a. Open in a new tab
-    window.open(fileURL);
-
-    // // 3b. Or trigger download with correct filename
-    // const a = document.createElement("a");
-    // a.href = fileURL;
-    // a.download = filename;
-    // document.body.appendChild(a);
-    // a.click();
-    // a.remove();
-
-    // 4. Cleanup blob URL after usage
-    URL.revokeObjectURL(fileURL);
   }
 
   return (
@@ -91,62 +50,72 @@ export default function Component({
             <CloseIcon className=" text-red-600 " />
           </button>
         </div>
+        <div className="p-2">
+          <div className="grid grid-cols-[20em_5em_10em] items-center gap-2">
+            {getCellFilesQuery.data?.map((file) => {
+              return (
+                <Fragment key={file.id}>
+                  <div className="truncate">{file.name_}</div>
+                  <div className="truncate">
+                    {new Date(file.created_at).toLocaleDateString()}
+                  </div>
+                  <div className="flex gap-2">
+                    <a
+                      className="bg-blue-500 w-fit p-1 rounded"
+                      href={`http://localhost:5173/api/get_cell_file/${params.workspace_id}/${params.board_id}/${params.column_id}/${params.row_id}/inline/${file.name_}`}
+                      target="_blank"
+                    >
+                      Open
+                    </a>
+                    <a
+                      className="bg-blue-500 w-fit p-1 rounded"
+                      href={`http://localhost:5173/api/get_cell_file/${params.workspace_id}/${params.board_id}/${params.column_id}/${params.row_id}/attachment/${file.name_}`}
+                      target="_blank"
+                    >
+                      Download
+                    </a>
+                    <button className="bg-red-800 rounded p-1">Delete</button>
+                  </div>
+                </Fragment>
+              );
+            })}
+          </div>
 
-        <div>
-          {loaderData.files.map((file) => {
-            return (
-              <div key={file.id}>
-                <div>{file.name_}</div>
-                <button
-                  onClick={async () =>
-                    await getCellFile(
-                      Number(params.workspace_id),
-                      Number(params.board_id),
-                      Number(params.column_id),
-                      Number(params.row_id),
-                      file.name_
-                    )
-                  }
-                >
-                  Get
-                </button>
-              </div>
-            );
-          })}
-        </div>
+          <div>
+            <label htmlFor="file" className=" bg-blue-700 p-1 rounded">
+              Select Files
+            </label>
+            <input
+              onChange={(e) => setFilesOnChange(e.target.files)}
+              className="hidden"
+              id="file"
+              type="file"
+              multiple
+            />
 
-        <div>
-          <label htmlFor="file">Select Files</label>
-          <input
-            onChange={(e) => setFilesOnChange(e.target.files)}
-            className="hidden"
-            id="file"
-            type="file"
-            multiple
-          />
-
-          {files.length ? (
-            <table>
-              <tbody>
-                {files.map((file) => {
-                  return (
-                    <UploadFileComponent
-                      key={file.name}
-                      file={file}
-                      storage_path={{
-                        workspace_id: params.workspace_id,
-                        board_id: params.board_id,
-                        column_id: params.column_id,
-                        row_id: params.row_id,
-                      }}
-                    />
-                  );
-                })}
-              </tbody>
-            </table>
-          ) : (
-            <></>
-          )}
+            {files.length ? (
+              <table>
+                <tbody>
+                  {files.map((file) => {
+                    return (
+                      <UploadFileComponent
+                        key={file.name}
+                        file={file}
+                        storage_path={{
+                          workspace_id: params.workspace_id,
+                          board_id: params.board_id,
+                          column_id: params.column_id,
+                          row_id: params.row_id,
+                        }}
+                      />
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <></>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -162,12 +131,15 @@ const UploadFileComponent: FC<{
     row_id: string;
   };
 }> = ({ file, storage_path }) => {
-  const revalidator = useRevalidator();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
+  const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
   async function uploadDocument() {
-    const res = await axios.postForm(
+    setIsUploading(true);
+    await axios.postForm(
       "http://localhost:5173/api/upload",
       {
         file: file,
@@ -186,18 +158,26 @@ const UploadFileComponent: FC<{
         },
       }
     );
-    revalidator.revalidate();
+    queryClient.invalidateQueries({
+      queryKey: trpc.cellFiles.getCellFiles.queryKey({
+        column_id: Number(storage_path.column_id),
+        row_id: Number(storage_path.row_id),
+      }),
+    });
   }
 
   return (
     <tr>
       <td>{file.name}</td>
       <td>
-        <button className="bg-blue-500 p-2" onClick={() => uploadDocument()}>
-          Upload
-        </button>
+        {isUploading ? (
+          <td>{uploadProgress}</td>
+        ) : (
+          <button className="bg-blue-500 p-2" onClick={() => uploadDocument()}>
+            Upload
+          </button>
+        )}
       </td>
-      <td>{uploadProgress}</td>
     </tr>
   );
 };
