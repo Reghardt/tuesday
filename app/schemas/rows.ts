@@ -16,9 +16,9 @@ import {
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
-import { getWorkspaceBoardGroup } from "./groups";
+import { getGroup } from "./groups";
 
-export const ZRows = z.object({
+export const ZRow = z.object({
   id: z.number(),
   group_id: z.number(),
   level: z.number(),
@@ -26,7 +26,7 @@ export const ZRows = z.object({
   parent_row_id: z.number().nullable(),
 });
 
-const ZGetRowsNextPos = ZRows.pick({
+const ZGetRowsNextPos = ZRow.pick({
   group_id: true,
   parent_row_id: true, // allow null for top-level rows
 });
@@ -52,7 +52,7 @@ const getRowsNextPos = withDbErrorHandling(
   }
 );
 
-const ZCreateRow = ZRows.pick({
+const ZCreateRow = ZRow.pick({
   group_id: true,
   level: true,
   parent_row_id: true,
@@ -75,8 +75,8 @@ const createRow = withDbErrorHandling(
         [values.group_id, values.level, nextPos, values.parent_row_id]
       )
     );
-    const workspace_board_group = await getWorkspaceBoardGroup(client, {
-      id: values.group_id,
+    const workspace_board_group = await getGroup(client, {
+      group_id: values.group_id,
     });
 
     const columns = await getColumns(client, {
@@ -138,21 +138,18 @@ const createRow = withDbErrorHandling(
   }
 );
 
-// const ZGetRows = ZRows.pick({
-//   group_id: true,
-// });
-// export const getRows = withDbErrorHandling(
-//   "getGroupRows",
-//   async (client, values: z.infer<typeof ZGetRows>) => {
-//     const res = await client.query(
-//       `SELECT * FROM rows WHERE group_id = $1`,
-//       [values.group_id]
-//     );
-//     return ZRows.array().parse(res.rows);
-//   }
-// );
+const ZGetRow = ZRow.pick({}).extend({ row_id: z.number() });
+export const getRow = withDbErrorHandling(
+  "getRow",
+  async (client, values: z.infer<typeof ZGetRow>) => {
+    return ZRow.array().parse(
+      (await client.query("SELECT * FROM rows WHERE id = $1", [values.row_id]))
+        .rows
+    )[0];
+  }
+);
 
-const ZDeleteRow = ZRows.pick({
+const ZDeleteRow = ZRow.pick({
   id: true,
 });
 const deleteRow = withDbErrorHandling(
@@ -162,7 +159,7 @@ const deleteRow = withDbErrorHandling(
   }
 );
 
-const ZDeleteRows = ZRows.pick({}).extend({ ids: z.number().array() });
+const ZDeleteRows = ZRow.pick({}).extend({ ids: z.number().array() });
 const deleteRows = withDbErrorHandling(
   "deleteRows",
   async (client, values: z.infer<typeof ZDeleteRows>) => {

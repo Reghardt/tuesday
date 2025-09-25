@@ -1,6 +1,9 @@
 import z from "zod";
 import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
+import { getGroup, getRows } from "./groups";
+import { getRow } from "./rows";
+import { getBoard } from "./boards";
 
 export const ZCellFile = z.object({
   id: z.number(),
@@ -54,6 +57,20 @@ export const getCellFiles = withDbErrorHandling(
     );
 
     return ZCellFile.array().parse(res.rows);
+  }
+);
+
+const ZGetStoragePathForCellFile = ZCellFile.pick({
+  row_id: true,
+  column_id: true,
+});
+export const getStoragePathForCellFile = withDbErrorHandling(
+  "getStoragePathForCellFile",
+  async (client, values: z.infer<typeof ZGetStoragePathForCellFile>) => {
+    const row = await getRow(client, { row_id: values.row_id });
+    const group = await getGroup(client, { group_id: row.group_id });
+    const board = await getBoard(client, { board_id: group.board_id });
+    return `/w_${board.workspace_id}/b_${group.board_id}/c_${values.column_id}/r_${values.row_id}`;
   }
 );
 

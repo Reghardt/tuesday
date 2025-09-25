@@ -28,19 +28,21 @@ export default function Component({
     })
   );
 
-  const [files, setFiles] = useState<File[]>([]);
+  const [uploadsQueue, setUploadsQueue] = useState<File[]>([]);
 
-  function setFilesOnChange(fileList: FileList | null) {
+  function setUploadsQueueOnChange(fileList: FileList | null) {
     const files: File[] = [];
     if (fileList) for (const file of fileList) files.push(file);
-    setFiles(files);
+    setUploadsQueue(files);
+  }
+
+  function removeFileFromUploadsQueue(name: string) {
+    setUploadsQueue((prev) => prev.filter((file) => file.name !== name));
   }
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-      {/* Centered modal */}
       <div className="w-full max-w-2xl h-[80%] bg-neutral-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700">
           <h2 className="text-lg font-semibold text-white">Files</h2>
           <button
@@ -56,20 +58,18 @@ export default function Component({
               return (
                 <Fragment key={file.id}>
                   <div className="truncate">{file.name_}</div>
-                  <div className="truncate">
-                    {new Date(file.created_at).toLocaleDateString()}
-                  </div>
+                  <div>{new Date(file.created_at).toLocaleDateString()}</div>
                   <div className="flex gap-2">
                     <a
                       className="bg-blue-500 w-fit p-1 rounded"
-                      href={`http://localhost:5173/api/get_cell_file/${params.workspace_id}/${params.board_id}/${params.column_id}/${params.row_id}/inline/${file.name_}`}
+                      href={`http://localhost:5173/api/get_cell_file/${params.column_id}/${params.row_id}/inline/${file.name_}`}
                       target="_blank"
                     >
                       Open
                     </a>
                     <a
                       className="bg-blue-500 w-fit p-1 rounded"
-                      href={`http://localhost:5173/api/get_cell_file/${params.workspace_id}/${params.board_id}/${params.column_id}/${params.row_id}/attachment/${file.name_}`}
+                      href={`http://localhost:5173/api/get_cell_file/${params.column_id}/${params.row_id}/attachment/${file.name_}`}
                       target="_blank"
                     >
                       Download
@@ -86,17 +86,17 @@ export default function Component({
               Select Files
             </label>
             <input
-              onChange={(e) => setFilesOnChange(e.target.files)}
+              onChange={(e) => setUploadsQueueOnChange(e.target.files)}
               className="hidden"
               id="file"
               type="file"
               multiple
             />
 
-            {files.length ? (
+            {uploadsQueue.length ? (
               <table>
                 <tbody>
-                  {files.map((file) => {
+                  {uploadsQueue.map((file) => {
                     return (
                       <UploadFileComponent
                         key={file.name}
@@ -107,6 +107,7 @@ export default function Component({
                           column_id: params.column_id,
                           row_id: params.row_id,
                         }}
+                        removeFileFromUploadsQueue={removeFileFromUploadsQueue}
                       />
                     );
                   })}
@@ -130,7 +131,8 @@ const UploadFileComponent: FC<{
     column_id: string;
     row_id: string;
   };
-}> = ({ file, storage_path }) => {
+  removeFileFromUploadsQueue(name: string): void;
+}> = ({ file, storage_path, removeFileFromUploadsQueue }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -143,8 +145,6 @@ const UploadFileComponent: FC<{
       "http://localhost:5173/api/upload",
       {
         file: file,
-        workspace_id: storage_path.workspace_id,
-        board_id: storage_path.board_id,
         column_id: storage_path.column_id,
         row_id: storage_path.row_id,
         note: "Hello",
@@ -164,6 +164,7 @@ const UploadFileComponent: FC<{
         row_id: Number(storage_path.row_id),
       }),
     });
+    removeFileFromUploadsQueue(file.name);
   }
 
   return (

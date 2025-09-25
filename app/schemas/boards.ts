@@ -9,12 +9,28 @@ export const ZBoard = z.object({
   pos: z.number().min(0),
 });
 
-const ZGetBoards = ZBoard.pick({ workspace_id: true });
-export const getBoards = withDbErrorHandling("getBoards", async (client, values: z.infer<typeof ZGetBoards>) => {
-  const res = await client.query("SELECT * from boards WHERE workspace_id = $1", [values.workspace_id]);
+const ZGetBoard = ZBoard.pick({}).extend({ board_id: z.number() });
+export const getBoard = withDbErrorHandling(
+  "getBoard",
+  async (client, values: z.infer<typeof ZGetBoard>) => {
+    const res = await client.query("SELECT * from boards WHERE id = $1", [
+      values.board_id,
+    ]);
+    return ZBoard.array().parse(res.rows)[0];
+  }
+);
 
-  return ZBoard.array().parse(res.rows);
-});
+const ZGetBoards = ZBoard.pick({ workspace_id: true });
+const getBoards = withDbErrorHandling(
+  "getBoards",
+  async (client, values: z.infer<typeof ZGetBoards>) => {
+    const res = await client.query(
+      "SELECT * from boards WHERE workspace_id = $1",
+      [values.workspace_id]
+    );
+    return ZBoard.array().parse(res.rows);
+  }
+);
 
 const ZGetBoardsNextPos = ZBoard.pick({
   workspace_id: true,
@@ -31,20 +47,25 @@ const getBoardsNextPos = withDbErrorHandling(
       [values.workspace_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
+      .next_pos;
   }
 );
 
 const ZCreateBoard = ZBoard.pick({ workspace_id: true, name_: true });
-export const createBoard = withDbErrorHandling("createBoard", async (client, values: z.infer<typeof ZCreateBoard>) => {
-  const next_pos = await getBoardsNextPos(client, { workspace_id: values.workspace_id });
+const createBoard = withDbErrorHandling(
+  "createBoard",
+  async (client, values: z.infer<typeof ZCreateBoard>) => {
+    const next_pos = await getBoardsNextPos(client, {
+      workspace_id: values.workspace_id,
+    });
 
-  await client.query("INSERT INTO boards(workspace_id, name_, pos) VALUES($1, $2, $3)", [
-    values.workspace_id,
-    values.name_,
-    next_pos,
-  ]);
-});
+    await client.query(
+      "INSERT INTO boards(workspace_id, name_, pos) VALUES($1, $2, $3)",
+      [values.workspace_id, values.name_, next_pos]
+    );
+  }
+);
 
 export const boardsRouter = t.router({
   getGBoards: t.procedure.input(ZGetBoards).query(async (opts) => {
