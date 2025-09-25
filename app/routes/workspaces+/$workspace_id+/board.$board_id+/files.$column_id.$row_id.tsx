@@ -5,7 +5,7 @@ import CloseIcon from "~/components/icons/CloseIcon";
 import axios from "axios";
 import type { Route } from "./+types/files.$column_id.$row_id";
 import { useTRPC } from "~/utils/trpc/trpc";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getSessionUser(request);
@@ -20,6 +20,20 @@ export default function Component({
 }: Route.ComponentProps) {
   const navigate = useNavigate();
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const deleteCellFileMutation = useMutation(
+    trpc.cellFiles.deleteCellFile.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: trpc.cellFiles.getCellFiles.queryKey({
+            column_id: Number(params.column_id),
+            row_id: Number(params.row_id),
+          }),
+        });
+      },
+    })
+  );
 
   const getCellFilesQuery = useQuery(
     trpc.cellFiles.getCellFiles.queryOptions({
@@ -74,7 +88,17 @@ export default function Component({
                     >
                       Download
                     </a>
-                    <button className="bg-red-800 rounded p-1">Delete</button>
+                    <button
+                      className="bg-red-800 rounded p-1"
+                      onClick={() => {
+                        deleteCellFileMutation.mutate({
+                          name_: file.name_,
+                          cell_file_id: file.id,
+                        });
+                      }}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </Fragment>
               );

@@ -4,6 +4,8 @@ import { t } from "~/utils/trpc/trpc.server";
 import { getGroup, getRows } from "./groups";
 import { getRow } from "./rows";
 import { getBoard } from "./boards";
+import path from "path";
+import { unlink } from "fs/promises";
 
 export const ZCellFile = z.object({
   id: z.number(),
@@ -60,6 +62,38 @@ export const getCellFiles = withDbErrorHandling(
   }
 );
 
+const ZDeleteCellFile = ZCellFile.pick({
+  name_: true,
+}).extend({ cell_file_id: z.number() });
+export const deleteCellFile = withDbErrorHandling(
+  "deleteCellFile",
+  async (client, values: z.infer<typeof ZDeleteCellFile>) => {
+    const res = await client.query("SELECT * FROM cell_files WHERE id = $1", [
+      values.cell_file_id,
+    ]);
+    const cellFile = ZCellFile.array().parse(res.rows)[0];
+    try {
+      await unlink(
+        path.join(
+          process.cwd(),
+          "uploads",
+          await getStoragePathForCellFile(client, {
+            column_id: cellFile.column_id,
+            row_id: cellFile.row_id,
+          }),
+          values.name_
+        )
+      );
+    } catch (e) {
+      console.log(e);
+    }
+
+    await client.query("DELETE FROM cell_files WHERE id = $1", [
+      values.cell_file_id,
+    ]);
+  }
+);
+
 const ZGetStoragePathForCellFile = ZCellFile.pick({
   row_id: true,
   column_id: true,
@@ -83,5 +117,13 @@ export const cellFilesRouter = t.router({
           row_id: opts.input.row_id,
         })
     );
+  }),
+  deleteCellFile: t.procedure.input(ZDeleteCellFile).mutation(async (opts) => {
+    await withTransaction(async (client) => {
+      await deleteCellFile(client, {
+        name_: opts.input.name_,
+        cell_file_id: opts.input.cell_file_id,
+      });
+    });
   }),
 });
