@@ -164,7 +164,7 @@ export const createColumn = withDbErrorHandling(
         await createCell(client, {
           row_id: group_rows[i].id,
           column_id: column_id,
-          content: { files: 0 },
+          content: { file_count: 0 },
         });
       }
     }

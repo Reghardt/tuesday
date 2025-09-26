@@ -131,7 +131,7 @@ const createRow = withDbErrorHandling(
         await createCell(client, {
           row_id: group_row_id,
           column_id: columns[i].id,
-          content: { files: 0 },
+          content: { file_count: 0 },
         });
       }
     }

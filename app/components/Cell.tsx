@@ -271,6 +271,15 @@ const FilesCell: FC<{
   const trpc = useTRPC();
   const navigate = useNavigate();
 
+  const getCellQuery = useQuery({
+    ...trpc.cells.getCell.queryOptions({
+      column_id: cell.column_id,
+      row_id: cell.row_id,
+    }),
+    initialData: cell,
+    staleTime: 0,
+  });
+
   return (
     <button
       onClick={() => {
@@ -278,7 +287,7 @@ const FilesCell: FC<{
       }}
       className="w-full h-full p-1"
     >
-      {cell.content.files}
+      {getCellQuery.data.content.file_count}
     </button>
   );
 };

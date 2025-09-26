@@ -188,6 +188,12 @@ const UploadFileComponent: FC<{
         row_id: Number(storage_path.row_id),
       }),
     });
+    queryClient.invalidateQueries({
+      queryKey: trpc.cells.getCell.queryKey({
+        column_id: Number(storage_path.column_id),
+        row_id: Number(storage_path.row_id),
+      }),
+    });
     removeFileFromUploadsQueue(file.name);
   }
 

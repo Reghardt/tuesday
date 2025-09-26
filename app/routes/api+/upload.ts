@@ -3,18 +3,13 @@ import type { Route } from "./+types/auth.$";
 import { writeFile, mkdir } from "fs/promises";
 import z from "zod";
 import { existsSync } from "fs";
-import { createCellFile } from "~/schemas/cell_files";
+import { countCellFiles, createCellFile } from "~/schemas/cell_files";
 import { withTransaction } from "~/utils/pool.server";
 import { getSessionUser } from "~/utils/auth.server";
 import { getBoard } from "~/schemas/boards";
 import { getRow } from "~/schemas/rows";
 import { getGroup } from "~/schemas/groups";
-import { getWorkspace } from "~/schemas/workspace";
-
-export async function loader({ request }: Route.LoaderArgs) {
-  console.log("Loader!");
-  return null;
-}
+import { setCellContent } from "~/schemas/cells";
 
 async function ensureStoragePathForCellFileExists(params: {
   workspace_id: number;
@@ -76,12 +71,21 @@ export async function action({ request }: Route.ActionArgs) {
     console.log("Saved:", filePath);
 
     await withTransaction(async (client) => {
-      return createCellFile(client, {
+      createCellFile(client, {
         column_id,
         row_id,
         user_id: user.id,
         name_: file.name,
         note: null,
+      });
+
+      const count = await countCellFiles(client, { column_id, row_id });
+      console.log(count);
+
+      await setCellContent(client, {
+        column_id,
+        row_id,
+        content: { file_count: count },
       });
     });
   }

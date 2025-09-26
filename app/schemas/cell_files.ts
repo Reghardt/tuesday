@@ -108,6 +108,22 @@ export const getStoragePathForCellFile = withDbErrorHandling(
   }
 );
 
+const ZCountCellFiles = ZCellFile.pick({
+  row_id: true,
+  column_id: true,
+});
+export const countCellFiles = withDbErrorHandling(
+  "countCellFiles",
+  async (client, values: z.infer<typeof ZCountCellFiles>) => {
+    const res = await client.query(
+      "SELECT COUNT(*) FROM cell_files WHERE column_id = $1 AND row_id = $2;",
+      [values.column_id, values.row_id]
+    );
+    return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0]
+      .count;
+  }
+);
+
 export const cellFilesRouter = t.router({
   getCellFiles: t.procedure.input(ZGetCellFiles).query(async (opts) => {
     return await withTransaction(
