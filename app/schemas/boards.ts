@@ -21,7 +21,7 @@ export const getBoard = withDbErrorHandling(
 );
 
 const ZGetBoards = ZBoard.pick({ workspace_id: true });
-const getBoards = withDbErrorHandling(
+export const getBoards = withDbErrorHandling(
   "getBoards",
   async (client, values: z.infer<typeof ZGetBoards>) => {
     const res = await client.query(

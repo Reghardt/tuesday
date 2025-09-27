@@ -160,7 +160,7 @@ const deleteRow = withDbErrorHandling(
 );
 
 const ZDeleteRows = ZRow.pick({}).extend({ ids: z.number().array() });
-const deleteRows = withDbErrorHandling(
+export const deleteRows = withDbErrorHandling(
   "deleteRows",
   async (client, values: z.infer<typeof ZDeleteRows>) => {
     await client.query(`DELETE FROM rows WHERE id = ANY($1)`, [values.ids]);

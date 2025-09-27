@@ -16,6 +16,8 @@ import {
 } from "~/enums/groupColumnTypes";
 import { createCell } from "./cells";
 import { getRows } from "./groups";
+import { getBoard, getBoards } from "./boards";
+import { deleteRows } from "./rows";
 
 export const ZColumn = z.object({
   id: z.number(),
@@ -171,6 +173,23 @@ export const createColumn = withDbErrorHandling(
   }
 );
 
+const ZCountColumns = ZColumn.pick({
+  board_id: true,
+  level: true,
+});
+const countColumns = withDbErrorHandling(
+  "countColumns",
+  async (client, values: z.infer<typeof ZCountColumns>) => {
+    const res = await client.query(
+      "SELECT COUNT(*) FROM columns WHERE board_id = $1 AND level = $2",
+      [values.board_id, values.level]
+    );
+
+    return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0]
+      .count;
+  }
+);
+
 const ZDeleteColumn = ZColumn.pick({
   id: true,
   board_id: true,
@@ -178,10 +197,38 @@ const ZDeleteColumn = ZColumn.pick({
 export const deleteColumn = withDbErrorHandling(
   "deleteColumn",
   async (client, values: z.infer<typeof ZDeleteColumn>) => {
-    await client.query("DELETE FROM columns WHERE id = $1 AND board_id = $2", [
-      values.id,
-      values.board_id,
-    ]);
+    const column = ZColumn.array().parse(
+      (
+        await client.query(
+          "DELETE FROM columns WHERE id = $1 AND board_id = $2 RETURNING *",
+          [values.id, values.board_id]
+        )
+      ).rows
+    )[0];
+
+    const count = await countColumns(client, {
+      board_id: values.board_id,
+      level: column.level,
+    });
+
+    // delete all rows (which will be empty, ie no cells) when there are no columns remaining
+    if (count < 1) {
+      // get the board to get the workspace_id it belongs to
+      const board = await getBoard(client, { board_id: values.board_id });
+      // get all boards belonging to the workspace based on the earlier workspace id
+      const boards = await getBoards(client, {
+        workspace_id: board.workspace_id,
+      });
+      // get the rows for all boards at the level the last column was deleted at
+      for (const board of boards) {
+        const rows = await getRows(client, {
+          board_id: board.id,
+          level: column.level,
+        });
+        // delete the rows
+        await deleteRows(client, { ids: rows.map((r) => r.id) });
+      }
+    }
   }
 );
 
