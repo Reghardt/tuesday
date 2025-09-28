@@ -6,6 +6,7 @@ CREATE DATABASE tuesday;
 
 \l -- list databases
 
+DROP TABLE IF EXISTS update_files;
 DROP TABLE IF EXISTS cell_files;
 DROP TABLE IF EXISTS updates;
 DROP TABLE IF EXISTS cells;
@@ -118,7 +119,7 @@ CREATE TABLE IF NOT EXISTS updates(
     id SERIAL PRIMARY KEY,
     row_id INTEGER NOT NULL REFERENCES rows(id),  
     column_id INTEGER NOT NULL REFERENCES columns(id),
-    pos INTEGER NOT NULL CHECK(pos >= 1),
+    is_draft BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     user_id TEXT NOT NULL REFERENCES "user"(id), -- user should not be able to be deleted if they wrote an update, no cascade
@@ -127,20 +128,20 @@ CREATE TABLE IF NOT EXISTS updates(
     FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
 );
 
--- CREATE TABLE IF NOT EXISTS update_files(
---     id SERIAL PRIMARY KEY,
---     update_id INTEGER NOT NULL REFERENCES updates(id),  
---     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
---     name_ TEXT NOT NULL,
---     FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
--- );
+CREATE TABLE IF NOT EXISTS update_files(
+    id SERIAL PRIMARY KEY,
+    update_id INTEGER NOT NULL REFERENCES updates(id) ON DELETE CASCADE,  
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    name_ TEXT NOT NULL,
+    extension TEXT NOT NULL,
+    UNIQUE(update_id, name_)
+);
 
 CREATE TABLE IF NOT EXISTS cell_files(
     id SERIAL PRIMARY KEY,
     row_id INTEGER NOT NULL REFERENCES rows(id) ON DELETE CASCADE,  
     column_id INTEGER NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     user_id TEXT NOT NULL REFERENCES "user"(id),
     name_ TEXT NOT NULL,
     extension TEXT NOT NULL,

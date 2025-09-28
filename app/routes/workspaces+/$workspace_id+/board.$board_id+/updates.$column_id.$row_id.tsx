@@ -96,14 +96,14 @@ export default function Component({
           />
           <div className="flex justify-end mt-2">
             <button
-              onClick={() =>
-                createUpdateMutation.mutate({
-                  row_id: Number(params.row_id),
-                  column_id: Number(params.column_id),
-                  user_id: loaderData.user_id,
-                  note,
-                })
-              }
+              // onClick={() =>
+              //   createUpdateMutation.mutate({
+              //     row_id: Number(params.row_id),
+              //     column_id: Number(params.column_id),
+              //     user_id: loaderData.user_id,
+              //     note,
+              //   })
+              // }
               disabled={!note.trim()}
               className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg shadow hover:bg-blue-700 disabled:opacity-50"
             >
