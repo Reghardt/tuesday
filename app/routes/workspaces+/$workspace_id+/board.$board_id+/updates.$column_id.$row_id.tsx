@@ -12,10 +12,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { user_id: user.id };
 }
 
-export default function Component({
-  params,
-  loaderData,
-}: Route.ComponentProps) {
+export default function Component({ params, loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const [note, setNote] = useState("");
   const trpc = useTRPC();
@@ -27,6 +24,24 @@ export default function Component({
       column_id: Number(params.column_id),
     })
   );
+
+  const getLatestDraftUpdateQuery = useQuery(
+    trpc.updates.getLatestDraftUpdate.queryOptions({
+      column_id: Number(params.column_id),
+      row_id: Number(params.row_id),
+      user_id: loaderData.user_id,
+    })
+  );
+
+  const setDraftUpdateNoteMutation = useQuery(
+    trpc.updates.setDraftUpdateNote.mutationOptions({
+      column_id: Number(params.column_id),
+      row_id: Number(params.row_id),
+      user_id: loaderData.user_id,
+    })
+  );
+
+  console.log(getLatestDraftUpdateQuery.data);
 
   const createUpdateMutation = useMutation(
     trpc.updates.createUpdate.mutationOptions({
@@ -50,15 +65,10 @@ export default function Component({
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-      {/* Centered modal */}
       <div className="w-full max-w-2xl h-[80%] bg-neutral-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700">
           <h2 className="text-lg font-semibold text-white">Updates</h2>
-          <button
-            onClick={() => navigate(-1)}
-            className="p-1 rounded-full hover:bg-neutral-800"
-          >
+          <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-neutral-800">
             <CloseIcon className=" text-red-600 " />
           </button>
         </div>
@@ -66,21 +76,12 @@ export default function Component({
         {/* Updates list */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {getUpdatesQuery.data?.map((update) => (
-            <div
-              key={update.id}
-              className="border border-neutral-700 rounded-lg p-3 bg-neutral-800"
-            >
+            <div key={update.id} className="border border-neutral-700 rounded-lg p-3 bg-neutral-800">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-sm text-white">
-                  {update.name}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {new Date(update.created_at).toLocaleString()}
-                </span>
+                <span className="font-medium text-sm text-white">{update.name}</span>
+                <span className="text-xs text-gray-400">{new Date(update.created_at).toLocaleString()}</span>
               </div>
-              <p className="text-sm text-gray-200 whitespace-pre-line">
-                {update.note}
-              </p>
+              <p className="text-sm text-gray-200 whitespace-pre-line">{update.note}</p>
             </div>
           ))}
         </div>

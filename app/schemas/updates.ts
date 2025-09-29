@@ -12,32 +12,26 @@ export const ZUpdate = z.object({
   created_at: z.date(),
   updated_at: z.date(),
   user_id: z.string(),
-  note: z.string().min(1),
+  note: z.string(),
 });
 
 const ZCountUpdates = ZUpdate.pick({ row_id: true, column_id: true });
-const countUpdates = withDbErrorHandling(
-  "countUpdates",
-  async (client, values: z.infer<typeof ZCountUpdates>) => {
-    const res = await client.query(
-      `
+const countUpdates = withDbErrorHandling("countUpdates", async (client, values: z.infer<typeof ZCountUpdates>) => {
+  const res = await client.query(
+    `
     SELECT COUNT(*)
     FROM updates 
     WHERE updates.row_id = $1 AND updates.column_id = $2
     `,
-      [values.row_id, values.column_id]
-    );
-    return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0]
-      .count;
-  }
-);
+    [values.row_id, values.column_id]
+  );
+  return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0].count;
+});
 
 const ZGetUpdates = ZUpdate.pick({ row_id: true, column_id: true });
-const getUpdates = withDbErrorHandling(
-  "getUpdates",
-  async (client, values: z.infer<typeof ZGetUpdates>) => {
-    const res = await client.query(
-      `
+const getUpdates = withDbErrorHandling("getUpdates", async (client, values: z.infer<typeof ZGetUpdates>) => {
+  const res = await client.query(
+    `
     SELECT
         updates.id,
         updates.row_id,
@@ -52,13 +46,12 @@ const getUpdates = withDbErrorHandling(
     LEFT JOIN "user" as u ON u.id = updates.user_id
     WHERE updates.row_id = $1 AND updates.column_id = $2
     ORDER BY updates.created_at ASC`,
-      [values.row_id, values.column_id]
-    );
-    return ZUpdate.extend(ZUser.pick({ name: true, email: true }).shape)
-      .array()
-      .parse(res.rows);
-  }
-);
+    [values.row_id, values.column_id]
+  );
+  return ZUpdate.extend(ZUser.pick({ name: true, email: true }).shape)
+    .array()
+    .parse(res.rows);
+});
 
 const ZCreateUpdate = ZUpdate.pick({
   row_id: true,
@@ -67,38 +60,29 @@ const ZCreateUpdate = ZUpdate.pick({
   user_id: true,
   note: true,
 });
-const createUpdate = withDbErrorHandling(
-  "createUpdate",
-  async (client, values: z.infer<typeof ZCreateUpdate>) => {
-    const update = ZUpdate.array().parse(
-      (
-        await client.query(
-          `INSERT INTO updates(row_id, column_id, user_id, note, is_draft) VALUES($1, $2, $3, $4, $5) RETURNING *`,
-          [
-            values.row_id,
-            values.column_id,
-            values.user_id,
-            values.note,
-            values.is_draft,
-          ]
-        )
-      ).rows
-    )[0];
+const createUpdate = withDbErrorHandling("createUpdate", async (client, values: z.infer<typeof ZCreateUpdate>) => {
+  const update = ZUpdate.array().parse(
+    (
+      await client.query(
+        `INSERT INTO updates(row_id, column_id, user_id, note, is_draft) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+        [values.row_id, values.column_id, values.user_id, values.note, values.is_draft]
+      )
+    ).rows
+  )[0];
 
-    const count = await countUpdates(client, {
-      row_id: values.row_id,
-      column_id: values.column_id,
-    });
+  const count = await countUpdates(client, {
+    row_id: values.row_id,
+    column_id: values.column_id,
+  });
 
-    await setCellContent(client, {
-      row_id: values.row_id,
-      column_id: values.column_id,
-      content: { updates: count },
-    });
+  await setCellContent(client, {
+    row_id: values.row_id,
+    column_id: values.column_id,
+    content: { updates: count },
+  });
 
-    return update;
-  }
-);
+  return update;
+});
 
 const ZGetDraftUpdate = ZUpdate.pick({
   column_id: true,
@@ -175,15 +159,25 @@ export const updatesRouter = t.router({
           })
       )
   ),
-  getLatestDraftUpdate: t.procedure
-    .input(ZGetDraftUpdate)
-    .query(async (opts) => {
-      return await withTransaction(async (client) => {
-        return await getDraftUpdate(client, {
-          row_id: opts.input.row_id,
-          column_id: opts.input.column_id,
-          user_id: opts.input.user_id,
-        });
+  setDraftUpdateNote: t.procedure.input(ZCreateUpdate).mutation(
+    async (opts) =>
+      await withTransaction(
+        async (client) =>
+          await setDraftUpdateNote(client, {
+            row_id: opts.input.row_id,
+            column_id: opts.input.column_id,
+            user_id: opts.input.user_id,
+            note: opts.input.note,
+          })
+      )
+  ),
+  getLatestDraftUpdate: t.procedure.input(ZGetDraftUpdate).query(async (opts) => {
+    return await withTransaction(async (client) => {
+      return await getDraftUpdate(client, {
+        row_id: opts.input.row_id,
+        column_id: opts.input.column_id,
+        user_id: opts.input.user_id,
       });
-    }),
+    });
+  }),
 });

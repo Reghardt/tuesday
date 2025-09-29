@@ -1,7 +1,7 @@
 import z from "zod";
 import { withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
-import { getGroup, getRows } from "./groups";
+import { getGroup } from "./groups";
 import { getRow } from "./rows";
 import { getBoard } from "./boards";
 import path from "path";
