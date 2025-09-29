@@ -74,36 +74,20 @@ export default function Component({ params }: Route.ComponentProps) {
             >
               Date
             </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Time
-            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Time</button>
             <button
               onClick={() => {
                 createColumnMutation.mutate({
-                  name_: "Status",
+                  name_: "Label",
                   board_id: Number(params.board_id),
-                  column_type: ZEGroupColumnTypes.enum.status,
+                  column_type: ZEGroupColumnTypes.enum.label,
                   group_id: Number(params.group_id),
                   level: Number(params.level),
                 });
               }}
               className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
             >
-              Status
-            </button>
-            <button
-              onClick={() => {
-                createColumnMutation.mutate({
-                  name_: "Priority",
-                  board_id: Number(params.board_id),
-                  column_type: ZEGroupColumnTypes.enum.priority,
-                  group_id: Number(params.group_id),
-                  level: Number(params.level),
-                });
-              }}
-              className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80"
-            >
-              Priority
+              Label
             </button>
             <button
               onClick={() => {
@@ -133,15 +117,9 @@ export default function Component({ params }: Route.ComponentProps) {
             >
               File
             </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Timeline
-            </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Tags
-            </button>
-            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">
-              Checkbox
-            </button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Timeline</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Tags</button>
+            <button className="p-2 bg-blue-900 rounded text-left hover:bg-blue-900/80">Checkbox</button>
             <button
               onClick={() => {
                 createColumnMutation.mutate({

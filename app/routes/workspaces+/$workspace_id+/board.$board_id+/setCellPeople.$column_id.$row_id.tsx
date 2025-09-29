@@ -12,10 +12,10 @@ export default function Component({ params }: Route.ComponentProps) {
   const getUsersQuery = useQuery(trpc.users.getUsers.queryOptions());
 
   const createStatusMutation = useMutation(
-    trpc.statuses.createStatus.mutationOptions({
+    trpc.labels.createLabel.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.statuses.getStatuses.queryKey({
+          queryKey: trpc.labels.getLabels.queryKey({
             board_id: Number(params.board_id),
           }),
         });

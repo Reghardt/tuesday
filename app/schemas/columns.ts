@@ -1,16 +1,12 @@
 import z from "zod";
-import {
-  getRowId,
-  withDbErrorHandling,
-  withTransaction,
-} from "~/utils/pool.server";
+import { getRowId, withDbErrorHandling, withTransaction } from "~/utils/pool.server";
 import { t } from "~/utils/trpc/trpc.server";
 import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
   peopleColumnTypeCodec,
   priorityColumnTypeCodec,
-  statusColumnTypeCodec,
+  LabelColumnTypeCodec,
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
@@ -44,8 +40,7 @@ const getColumnsNextPos = withDbErrorHandling(
       [values.board_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
-      .next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
   }
 );
 
@@ -53,23 +48,20 @@ const ZGetColumns = ZColumn.pick({
   board_id: true,
   level: true,
 });
-export const getColumns = withDbErrorHandling(
-  "getColumns",
-  async (client, values: z.infer<typeof ZGetColumns>) => {
-    const res = await client.query(
-      `
+export const getColumns = withDbErrorHandling("getColumns", async (client, values: z.infer<typeof ZGetColumns>) => {
+  const res = await client.query(
+    `
       SELECT
         *
       FROM columns
       WHERE columns.board_id = $1 AND columns.level = $2
       ORDER BY columns.pos ASC
       `,
-      [values.board_id, values.level]
-    );
+    [values.board_id, values.level]
+  );
 
-    return ZColumn.array().parse(res.rows);
-  }
-);
+  return ZColumn.array().parse(res.rows);
+});
 
 const ZCreateColumn = ZColumn.pick({
   board_id: true,
@@ -89,14 +81,7 @@ export const createColumn = withDbErrorHandling(
     const column_id = getRowId(
       await client.query(
         "INSERT INTO columns(board_id, level, name_, column_type, type_properties, pos) VALUES($1, $2, $3, $4, $5, $6) RETURNING *",
-        [
-          values.board_id,
-          values.level,
-          values.name_,
-          values.column_type,
-          {},
-          nextPos,
-        ]
+        [values.board_id, values.level, values.name_, values.column_type, {}, nextPos]
       )
     );
 
@@ -129,12 +114,12 @@ export const createColumn = withDbErrorHandling(
           content: dateColumnTypeCodec.encode(null),
         });
       }
-    } else if (values.column_type === ZEGroupColumnTypes.enum.status) {
+    } else if (values.column_type === ZEGroupColumnTypes.enum.label) {
       for (let i = 0; i < group_rows.length; i++) {
         await createCell(client, {
           row_id: group_rows[i].id,
           column_id: column_id,
-          content: statusColumnTypeCodec.encode(null),
+          content: LabelColumnTypeCodec.encode(null),
         });
       }
     } else if (values.column_type === ZEGroupColumnTypes.enum.priority) {
@@ -177,18 +162,14 @@ const ZCountColumns = ZColumn.pick({
   board_id: true,
   level: true,
 });
-const countColumns = withDbErrorHandling(
-  "countColumns",
-  async (client, values: z.infer<typeof ZCountColumns>) => {
-    const res = await client.query(
-      "SELECT COUNT(*) FROM columns WHERE board_id = $1 AND level = $2",
-      [values.board_id, values.level]
-    );
+const countColumns = withDbErrorHandling("countColumns", async (client, values: z.infer<typeof ZCountColumns>) => {
+  const res = await client.query("SELECT COUNT(*) FROM columns WHERE board_id = $1 AND level = $2", [
+    values.board_id,
+    values.level,
+  ]);
 
-    return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0]
-      .count;
-  }
-);
+  return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0].count;
+});
 
 const ZDeleteColumn = ZColumn.pick({
   id: true,
@@ -199,10 +180,10 @@ export const deleteColumn = withDbErrorHandling(
   async (client, values: z.infer<typeof ZDeleteColumn>) => {
     const column = ZColumn.array().parse(
       (
-        await client.query(
-          "DELETE FROM columns WHERE id = $1 AND board_id = $2 RETURNING *",
-          [values.id, values.board_id]
-        )
+        await client.query("DELETE FROM columns WHERE id = $1 AND board_id = $2 RETURNING *", [
+          values.id,
+          values.board_id,
+        ])
       ).rows
     )[0];
 
@@ -236,29 +217,18 @@ const ZSetColumnName = ZColumn.pick({
   id: true,
   name_: true,
 });
-const setColumnName = withDbErrorHandling(
-  "setColumnName",
-  async (client, values: z.infer<typeof ZSetColumnName>) => {
-    await client.query("UPDATE columns SET name_ = $1 WHERE id = $2", [
-      values.name_,
-      values.id,
-    ]);
-  }
-);
+const setColumnName = withDbErrorHandling("setColumnName", async (client, values: z.infer<typeof ZSetColumnName>) => {
+  await client.query("UPDATE columns SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
+});
 
 const ZGetColumnName = ZColumn.pick({
   id: true,
 });
-const getColumnName = withDbErrorHandling(
-  "getColumnName",
-  async (client, values: z.infer<typeof ZGetColumnName>) => {
-    const res = await client.query("SELECT name_ FROM columns WHERE id = $1", [
-      values.id,
-    ]);
+const getColumnName = withDbErrorHandling("getColumnName", async (client, values: z.infer<typeof ZGetColumnName>) => {
+  const res = await client.query("SELECT name_ FROM columns WHERE id = $1", [values.id]);
 
-    return z.object({ name_: z.string() }).array().parse(res.rows)[0].name_;
-  }
-);
+  return z.object({ name_: z.string() }).array().parse(res.rows)[0].name_;
+});
 
 export const columnsRouter = t.router({
   createColumn: t.procedure.input(ZCreateColumn).mutation(async (opts) => {

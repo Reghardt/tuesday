@@ -9,12 +9,11 @@ CREATE DATABASE tuesday;
 DROP TABLE IF EXISTS update_files;
 DROP TABLE IF EXISTS cell_files;
 DROP TABLE IF EXISTS updates;
+DROP TABLE IF EXISTS labels;
 DROP TABLE IF EXISTS cells;
 DROP TABLE IF EXISTS rows;
 DROP TABLE IF EXISTS columns;
 DROP TABLE IF EXISTS groups;
-DROP TABLE IF EXISTS statuses;
-DROP TABLE IF EXISTS priorities;
 DROP TABLE IF EXISTS boards;
 DROP TABLE IF EXISTS workspaces;
 
@@ -34,20 +33,6 @@ CREATE TABLE IF NOT EXISTS boards(
     workspace_id INTEGER NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name_ TEXT NOT NULL,
     pos INTEGER NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS statuses(
-    id SERIAL PRIMARY KEY,
-    board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-    name_ TEXT NOT NULL,
-    color TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS priorities(
-    id SERIAL PRIMARY KEY,
-    board_id INTEGER NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-    name_ TEXT NOT NULL,
-    color TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS groups(
@@ -103,6 +88,12 @@ CREATE TABLE IF NOT EXISTS cells(
     PRIMARY KEY (row_id, column_id) -- one cell per intersection
 );
 
+CREATE TABLE IF NOT EXISTS labels(
+    id SERIAL PRIMARY KEY,
+    column_id INTEGER NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
+    name_ TEXT NOT NULL,
+    color TEXT NOT NULL
+);
 
 
 

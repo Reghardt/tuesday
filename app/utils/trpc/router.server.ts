@@ -4,8 +4,7 @@ import { groupsRouter } from "~/schemas/groups";
 import { columnsRouter } from "~/schemas/columns";
 import { rowsRouter } from "~/schemas/rows";
 import { cellsRouter } from "~/schemas/cells";
-import { statusesRouter } from "~/schemas/statuses";
-import { prioritiesRouter } from "~/schemas/priorities";
+import { labelsRouter } from "~/schemas/labels";
 import { usersRouter } from "~/schemas/users";
 import { boardsRouter } from "~/schemas/boards";
 import { updatesRouter } from "~/schemas/updates";
@@ -18,8 +17,7 @@ export const appRouter = t.router({
   columns: columnsRouter,
   rows: rowsRouter,
   cells: cellsRouter,
-  statuses: statusesRouter,
-  priorities: prioritiesRouter,
+  labels: labelsRouter,
   users: usersRouter,
   updates: updatesRouter,
   cellFiles: cellFilesRouter,

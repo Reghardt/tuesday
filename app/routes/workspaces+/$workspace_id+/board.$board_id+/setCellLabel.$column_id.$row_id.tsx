@@ -1,27 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
+import type { Route } from "./+types/setCellLabel.$column_id.$row_id";
 import { useState } from "react";
-import type { Route } from "./+types/setCellPriority.$column_id.$row_id";
-import { priorityColumnTypeCodec } from "~/enums/groupColumnTypes";
+import { LabelColumnTypeCodec } from "~/enums/groupColumnTypes";
 
 export default function Component({ params }: Route.ComponentProps) {
   const navigate = useNavigate();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const getPrioritiesQuery = useQuery(
-    trpc.priorities.getPriorities.queryOptions({
-      board_id: Number(params.board_id),
+  const getLabelsQuery = useQuery(
+    trpc.labels.getLabels.queryOptions({
+      column_id: Number(params.column_id),
     })
   );
 
-  const createPrioritiesMutation = useMutation(
-    trpc.priorities.createPriorities.mutationOptions({
+  const createLabelsMutation = useMutation(
+    trpc.labels.createLabel.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.priorities.getPriorities.queryKey({
-            board_id: Number(params.board_id),
+          queryKey: trpc.labels.getLabels.queryKey({
+            column_id: Number(params.column_id),
           }),
         });
       },
@@ -42,7 +42,7 @@ export default function Component({ params }: Route.ComponentProps) {
     })
   );
 
-  const [statusName, setPrioritiesName] = useState("");
+  const [statusName, setStatusName] = useState("");
   const [color, setColor] = useState("#03fc28");
 
   return (
@@ -50,23 +50,22 @@ export default function Component({ params }: Route.ComponentProps) {
       <div className=" bg-black p-2">
         <div>
           <button onClick={() => navigate(-1)}>Cancel</button>
-          <div>Priorities</div>
+          <div>Label</div>
 
-          {getPrioritiesQuery.data?.map((priority) => {
+          {getLabelsQuery.data?.map((status) => {
             return (
               <button
-                key={priority.id}
                 onClick={() => {
                   setCellContentMutation.mutate({
                     row_id: Number(params.row_id),
                     column_id: Number(params.column_id),
-                    content: priorityColumnTypeCodec.encode(priority.id),
+                    content: LabelColumnTypeCodec.encode(status.id),
                   });
                 }}
                 className={`w-full`}
-                style={{ background: priority.color }}
+                style={{ background: status.color }}
               >
-                {priority.name_}
+                {status.name_}
               </button>
             );
           })}
@@ -77,7 +76,7 @@ export default function Component({ params }: Route.ComponentProps) {
               <input
                 type="text"
                 value={statusName}
-                onChange={(e) => setPrioritiesName(e.target.value)}
+                onChange={(e) => setStatusName(e.target.value)}
                 className="border"
               />
             </div>
@@ -88,8 +87,8 @@ export default function Component({ params }: Route.ComponentProps) {
 
             <button
               onClick={() =>
-                createPrioritiesMutation.mutate({
-                  board_id: Number(params.board_id),
+                createLabelsMutation.mutate({
+                  column_id: Number(params.column_id),
                   name_: statusName,
                   color: color,
                 })

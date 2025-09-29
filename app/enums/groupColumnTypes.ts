@@ -6,8 +6,7 @@ export const ZEGroupColumnTypes = z.enum({
   number_: 1,
   date: 2,
   time: 3,
-  status: 4,
-  priority: 5,
+  label: 4,
   people: 6,
   file: 7,
   timeline: 8,
@@ -49,29 +48,27 @@ export const dateColumnTypeCodec = {
   },
 };
 
-export const statusColumnTypeCodec = {
-  encode: (status_id: number | null) => {
+export const LabelColumnTypeCodec = {
+  encode: (label_id: number | null) => {
     return {
-      status_id,
+      label_id: label_id,
     };
   },
   decode: (content: JSONType) => {
-    return z.object({ status_id: z.number().nullable() }).parse(content)
-      .status_id;
+    return z.object({ label_id: z.number().nullable() }).parse(content).label_id;
   },
 };
 
-export const priorityColumnTypeCodec = {
-  encode: (priority_id: number | null) => {
-    return {
-      priority_id,
-    };
-  },
-  decode: (content: JSONType) => {
-    return z.object({ priority_id: z.number().nullable() }).parse(content)
-      .priority_id;
-  },
-};
+// export const priorityColumnTypeCodec = {
+//   encode: (priority_id: number | null) => {
+//     return {
+//       priority_id,
+//     };
+//   },
+//   decode: (content: JSONType) => {
+//     return z.object({ priority_id: z.number().nullable() }).parse(content).priority_id;
+//   },
+// };
 
 export const peopleColumnTypeCodec = {
   encode: (user_ids: string[]) => {

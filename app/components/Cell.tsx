@@ -6,21 +6,16 @@ import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
   peopleColumnTypeCodec,
-  priorityColumnTypeCodec,
-  statusColumnTypeCodec,
+  LabelColumnTypeCodec,
   textColumnTypeCodec,
   ZEGroupColumnTypes,
 } from "~/enums/groupColumnTypes";
 import type { ZGroupCellExtended } from "~/schemas/groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.cells.setCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
 
   return (
     <input
@@ -38,13 +33,9 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.cells.setCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
 
   return (
     <input
@@ -62,13 +53,9 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
-  cell,
-}) => {
+const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(
-    trpc.cells.setCellContent.mutationOptions()
-  );
+  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
 
   return (
     <input
@@ -86,7 +73,7 @@ const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   );
 };
 
-const StatusCell: FC<{
+const LabelsCell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
   board_id: number;
 }> = ({ cell, board_id }) => {
@@ -102,20 +89,18 @@ const StatusCell: FC<{
     staleTime: 0,
   });
 
-  const getStatusesQuery = useQuery(
-    trpc.statuses.getStatuses.queryOptions({ board_id })
-  );
+  const getLabelsQuery = useQuery(trpc.labels.getLabels.queryOptions({ column_id: cell.column_id }));
 
-  let text = "No Status";
+  let text = "No Label";
   let color = "#4a5565";
 
-  const status_id = statusColumnTypeCodec.decode(getCellQuery.data?.content);
+  const label_id = LabelColumnTypeCodec.decode(getCellQuery.data?.content);
 
-  if (status_id !== null) {
-    for (let i = 0; i < (getStatusesQuery.data?.length ?? 0); i++) {
-      if (status_id === getStatusesQuery.data![i].id) {
-        text = getStatusesQuery.data![i].name_;
-        color = getStatusesQuery.data![i].color;
+  if (label_id !== null) {
+    for (let i = 0; i < (getLabelsQuery.data?.length ?? 0); i++) {
+      if (label_id === getLabelsQuery.data![i].id) {
+        text = getLabelsQuery.data![i].name_;
+        color = getLabelsQuery.data![i].color;
       }
     }
   }
@@ -123,7 +108,7 @@ const StatusCell: FC<{
   return (
     <button
       onClick={() => {
-        navigate(`setCellStatus/${cell.column_id}/${cell.row_id}`);
+        navigate(`setCellLabel/${cell.column_id}/${cell.row_id}`);
       }}
       className="w-full h-full p-1"
       style={{ background: color }}
@@ -133,56 +118,54 @@ const StatusCell: FC<{
   );
 };
 
-const PriorityCell: FC<{
-  cell: z.infer<typeof ZGroupCellExtended>;
-  board_id: number;
-}> = ({ cell, board_id }) => {
-  const trpc = useTRPC();
-  const navigate = useNavigate();
+// const PriorityCell: FC<{
+//   cell: z.infer<typeof ZGroupCellExtended>;
+//   board_id: number;
+// }> = ({ cell, board_id }) => {
+//   const trpc = useTRPC();
+//   const navigate = useNavigate();
 
-  const getCellQuery = useQuery({
-    ...trpc.cells.getCell.queryOptions({
-      column_id: cell.column_id,
-      row_id: cell.row_id,
-    }),
-    initialData: cell,
-    staleTime: 0,
-  });
+//   const getCellQuery = useQuery({
+//     ...trpc.cells.getCell.queryOptions({
+//       column_id: cell.column_id,
+//       row_id: cell.row_id,
+//     }),
+//     initialData: cell,
+//     staleTime: 0,
+//   });
 
-  const getPrioritiesQuery = useQuery(
-    trpc.priorities.getPriorities.queryOptions({
-      board_id,
-    })
-  );
+//   const getPrioritiesQuery = useQuery(
+//     trpc.priorities.getPriorities.queryOptions({
+//       board_id,
+//     })
+//   );
 
-  let text = "No Status";
-  let color = "#4a5565";
+//   let text = "No Status";
+//   let color = "#4a5565";
 
-  const priority_id = priorityColumnTypeCodec.decode(
-    getCellQuery.data?.content
-  );
+//   const priority_id = priorityColumnTypeCodec.decode(getCellQuery.data?.content);
 
-  if (priority_id !== null) {
-    for (let i = 0; i < (getPrioritiesQuery.data?.length ?? 0); i++) {
-      if (priority_id === getPrioritiesQuery.data![i].id) {
-        text = getPrioritiesQuery.data![i].name_;
-        color = getPrioritiesQuery.data![i].color;
-      }
-    }
-  }
+//   if (priority_id !== null) {
+//     for (let i = 0; i < (getPrioritiesQuery.data?.length ?? 0); i++) {
+//       if (priority_id === getPrioritiesQuery.data![i].id) {
+//         text = getPrioritiesQuery.data![i].name_;
+//         color = getPrioritiesQuery.data![i].color;
+//       }
+//     }
+//   }
 
-  return (
-    <button
-      onClick={() => {
-        navigate(`setCellPriority/${cell.column_id}/${cell.row_id}`);
-      }}
-      className="w-full h-full p-1"
-      style={{ background: color }}
-    >
-      {text}
-    </button>
-  );
-};
+//   return (
+//     <button
+//       onClick={() => {
+//         navigate(`setCellPriority/${cell.column_id}/${cell.row_id}`);
+//       }}
+//       className="w-full h-full p-1"
+//       style={{ background: color }}
+//     >
+//       {text}
+//     </button>
+//   );
+// };
 
 const PeopleCell: FC<{
   cell: z.infer<typeof ZGroupCellExtended>;
@@ -302,10 +285,8 @@ export const Cell: FC<{
     return <NumberCell cell={cell} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.date) {
     return <DateCell cell={cell} />;
-  } else if (cell.column_type === ZEGroupColumnTypes.enum.status) {
-    return <StatusCell cell={cell} board_id={board_id} />;
-  } else if (cell.column_type === ZEGroupColumnTypes.enum.priority) {
-    return <PriorityCell cell={cell} board_id={board_id} />;
+  } else if (cell.column_type === ZEGroupColumnTypes.enum.label) {
+    return <LabelsCell cell={cell} board_id={board_id} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.people) {
     return <PeopleCell cell={cell} board_id={board_id} />;
   } else if (cell.column_type === ZEGroupColumnTypes.enum.updates) {
