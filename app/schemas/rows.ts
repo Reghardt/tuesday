@@ -7,7 +7,6 @@ import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
   peopleColumnTypeCodec,
-  priorityColumnTypeCodec,
   LabelColumnTypeCodec,
   textColumnTypeCodec,
   ZEGroupColumnTypes,
@@ -20,6 +19,7 @@ export const ZRow = z.object({
   level: z.number(),
   pos: z.number(),
   parent_row_id: z.number().nullable(),
+  children_count: z.number(),
 });
 
 const ZGetRowsNextPos = ZRow.pick({
@@ -47,6 +47,24 @@ const getRowsNextPos = withDbErrorHandling(
   }
 );
 
+const ZCountRowChildren = ZRow.pick({}).extend({ row_id: z.number() });
+const countRowChildren = withDbErrorHandling(
+  "countRowChildren",
+  async (client, values: z.infer<typeof ZCountRowChildren>) => {
+    const res = await client.query("SELECT COUNT(*) FROM rows WHERE parent_row_id = $1", [values.row_id]);
+
+    return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0].count;
+  }
+);
+
+const ZSetRowChildrenCount = ZRow.pick({ children_count: true }).extend({ row_id: true });
+const setRowChildrenCount = withDbErrorHandling(
+  "setRowChildrenCount",
+  async (client, values: z.infer<typeof ZSetRowChildrenCount>) => {
+    await client.query("UPDATE rows SET children_count = $1 WHERE id = $2", [values.children_count, values.row_id]);
+  }
+);
+
 const ZCreateRow = ZRow.pick({
   group_id: true,
   level: true,
@@ -61,13 +79,19 @@ const createRow = withDbErrorHandling("createRow", async (client, values: z.infe
   const group_row_id = getRowId(
     await client.query(
       `
-          INSERT INTO rows(group_id, level, pos, parent_row_id) 
-          VALUES($1, $2, $3, $4) 
+          INSERT INTO rows(group_id, level, pos, parent_row_id, children_count) 
+          VALUES($1, $2, $3, $4, $5) 
           RETURNING id;
           `,
-      [values.group_id, values.level, nextPos, values.parent_row_id]
+      [values.group_id, values.level, nextPos, values.parent_row_id, 0]
     )
   );
+
+  if (values.parent_row_id !== null) {
+    const parent_children_count = await countRowChildren(client, { row_id: values.parent_row_id });
+    await setRowChildrenCount(client, { row_id: values.parent_row_id, children_count: parent_children_count });
+  }
+
   const workspace_board_group = await getGroup(client, {
     group_id: values.group_id,
   });
@@ -102,12 +126,6 @@ const createRow = withDbErrorHandling("createRow", async (client, values: z.infe
         column_id: columns[i].id,
         content: LabelColumnTypeCodec.encode(null),
       });
-    } else if (columns[i].column_type === ZEGroupColumnTypes.enum.priority) {
-      await createCell(client, {
-        row_id: group_row_id,
-        column_id: columns[i].id,
-        content: priorityColumnTypeCodec.encode(null),
-      });
     } else if (columns[i].column_type === ZEGroupColumnTypes.enum.people) {
       await createCell(client, {
         row_id: group_row_id,
@@ -139,12 +157,21 @@ const ZDeleteRow = ZRow.pick({
   id: true,
 });
 const deleteRow = withDbErrorHandling("deleteRow", async (client, values: z.infer<typeof ZDeleteRow>) => {
+  const row_to_delete = await getRow(client, { row_id: values.id });
+  console.log("row to delete", row_to_delete);
   await client.query(`DELETE FROM rows WHERE id = $1`, [values.id]);
+
+  if (row_to_delete.parent_row_id !== null) {
+    const parent_children_count = await countRowChildren(client, { row_id: row_to_delete.parent_row_id });
+    await setRowChildrenCount(client, { row_id: row_to_delete.parent_row_id, children_count: parent_children_count });
+  }
 });
 
 const ZDeleteRows = ZRow.pick({}).extend({ ids: z.number().array() });
 export const deleteRows = withDbErrorHandling("deleteRows", async (client, values: z.infer<typeof ZDeleteRows>) => {
-  await client.query(`DELETE FROM rows WHERE id = ANY($1)`, [values.ids]);
+  for (const row_id of values.ids) {
+    await deleteRow(client, { id: row_id });
+  }
 });
 
 export const rowsRouter = t.router({

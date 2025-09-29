@@ -31,10 +31,8 @@ const Group: FC<{
     trpc.rows.createRow.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: trpc.groups.getGroupData.queryKey({
-            group_id: group.id,
-            parent_row_id: parent_row_id,
-          }),
+          // TODO: optimize refetch here, all data is refetched on row creation
+          queryKey: trpc.groups.getGroupData.queryKey(),
         });
       },
     })
@@ -47,17 +45,10 @@ const Group: FC<{
     })
   );
 
-  function createTable(
-    rows: typeof getGroupDataQuery.data,
-    columns: typeof getGroupColumnsQuery.data
-  ) {
+  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
     return (
       <div className="w-full">
-        {level === 0 ? (
-          <GroupName name={group.name_} group_id={group.id} />
-        ) : (
-          <></>
-        )}
+        {level === 0 ? <GroupName name={group.name_} group_id={group.id} /> : <></>}
 
         <div className="grid grid-cols-[auto_1fr] w-full ">
           {level > 0 ? (
@@ -75,10 +66,7 @@ const Group: FC<{
             <div className="min-w-8 border-t border-l border-neutral-700"></div>
             {columns?.map((column) => {
               return (
-                <div
-                  key={column.id}
-                  className="text-left border-t border-l border-neutral-700 w-60"
-                >
+                <div key={column.id} className="text-left border-t border-l border-neutral-700 w-60">
                   <ColumnHeading column={column} />
                 </div>
               );

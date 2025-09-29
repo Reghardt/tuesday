@@ -5,7 +5,6 @@ import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
   peopleColumnTypeCodec,
-  priorityColumnTypeCodec,
   LabelColumnTypeCodec,
   textColumnTypeCodec,
   ZEGroupColumnTypes,
@@ -120,14 +119,6 @@ export const createColumn = withDbErrorHandling(
           row_id: group_rows[i].id,
           column_id: column_id,
           content: LabelColumnTypeCodec.encode(null),
-        });
-      }
-    } else if (values.column_type === ZEGroupColumnTypes.enum.priority) {
-      for (let i = 0; i < group_rows.length; i++) {
-        await createCell(client, {
-          row_id: group_rows[i].id,
-          column_id: column_id,
-          content: priorityColumnTypeCodec.encode(null),
         });
       }
     } else if (values.column_type === ZEGroupColumnTypes.enum.people) {

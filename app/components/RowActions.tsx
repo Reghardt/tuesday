@@ -17,6 +17,7 @@ const RowActions: FC = () => {
       onSuccess: () => {
         clear();
         queryClient.invalidateQueries({
+          // TODO: optimize refetch here, all data is refetched on row deletion
           queryKey: trpc.groups.getGroupData.queryKey(),
         });
       },
@@ -32,10 +33,6 @@ const RowActions: FC = () => {
 
   if (row_ids.length === 0) {
     return <></>;
-  }
-
-  function deleteRows() {
-    const row_ids: number[] = [];
   }
 
   return (

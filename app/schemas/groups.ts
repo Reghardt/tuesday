@@ -15,30 +15,20 @@ export const ZGroup = z.object({
 });
 
 const ZGetGroupName = ZGroup.pick({ id: true });
-const getGroupName = withDbErrorHandling(
-  "getGroupName",
-  async (client, values: z.infer<typeof ZGetGroupName>) => {
-    const res = await client.query("SELECT name_ from groups WHERE id = $1", [
-      values.id,
-    ]);
+const getGroupName = withDbErrorHandling("getGroupName", async (client, values: z.infer<typeof ZGetGroupName>) => {
+  const res = await client.query("SELECT name_ from groups WHERE id = $1", [values.id]);
 
-    return ZGroup.pick({ name_: true }).array().parse(res.rows)[0];
-  }
-);
+  return ZGroup.pick({ name_: true }).array().parse(res.rows)[0];
+});
 
 const ZGetGroups = ZGroup.pick({
   board_id: true,
 });
-export const getGroups = withDbErrorHandling(
-  "getGroups",
-  async (client, values: z.infer<typeof ZGetGroups>) => {
-    const res = await client.query("SELECT * from groups WHERE board_id = $1", [
-      values.board_id,
-    ]);
+export const getGroups = withDbErrorHandling("getGroups", async (client, values: z.infer<typeof ZGetGroups>) => {
+  const res = await client.query("SELECT * from groups WHERE board_id = $1", [values.board_id]);
 
-    return ZGroup.array().parse(res.rows);
-  }
-);
+  return ZGroup.array().parse(res.rows);
+});
 
 const ZGetGroupsNextPos = ZGroup.pick({
   board_id: true,
@@ -55,8 +45,7 @@ const getGroupsNextPos = withDbErrorHandling(
       [values.board_id]
     );
 
-    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0]
-      .next_pos;
+    return z.object({ next_pos: z.number() }).array().parse(res.rows)[0].next_pos;
   }
 );
 
@@ -72,10 +61,12 @@ export const createGroup = withDbErrorHandling(
       board_id: values.board_id,
     });
 
-    return await client.query(
-      "INSERT INTO groups(board_id, name_, pos, color) VALUES($1, $2, $3, $4)",
-      [values.board_id, values.name_, nextPos, values.color]
-    );
+    return await client.query("INSERT INTO groups(board_id, name_, pos, color) VALUES($1, $2, $3, $4)", [
+      values.board_id,
+      values.name_,
+      nextPos,
+      values.color,
+    ]);
   }
 );
 
@@ -94,17 +85,16 @@ export const ZGetGroupDataResult = ZRow.extend({
   cells_arr: ZGroupCellExtended.array(),
 });
 
-const getGroupData = withDbErrorHandling(
-  "getGroupData",
-  async (client, values: z.infer<typeof ZGetGroupData>) => {
-    const res = await client.query(
-      `
+const getGroupData = withDbErrorHandling("getGroupData", async (client, values: z.infer<typeof ZGetGroupData>) => {
+  const res = await client.query(
+    `
       SELECT 
       rows.id,
       rows.group_id,
       rows.level,
       rows.pos,
       rows.parent_row_id,
+      rows.children_count,
       COALESCE(
         JSON_AGG(
             JSON_BUILD_OBJECT(
@@ -130,23 +120,20 @@ const getGroupData = withDbErrorHandling(
       GROUP BY rows.id, rows.group_id, rows.pos
       ORDER BY rows.pos ASC
       `,
-      [values.group_id, values.parent_row_id]
-    );
+    [values.group_id, values.parent_row_id]
+  );
 
-    const parsedRes = ZGetGroupDataResult.array().parse(res.rows);
+  const parsedRes = ZGetGroupDataResult.array().parse(res.rows);
 
-    return parsedRes;
-  }
-);
+  return parsedRes;
+});
 
 const ZGetRows = ZGroup.pick({
   board_id: true,
 }).extend(ZRow.pick({ level: true }).shape);
-export const getRows = withDbErrorHandling(
-  "getRows",
-  async (client, values: z.infer<typeof ZGetRows>) => {
-    const res = await client.query(
-      `
+export const getRows = withDbErrorHandling("getRows", async (client, values: z.infer<typeof ZGetRows>) => {
+  const res = await client.query(
+    `
       SELECT
         rows.id,
         rows.group_id,
@@ -157,35 +144,23 @@ export const getRows = withDbErrorHandling(
       JOIN rows ON rows.group_id = groups.id
       WHERE board_id = $1 AND level = $2
       `,
-      [values.board_id, values.level]
-    );
+    [values.board_id, values.level]
+  );
 
-    return ZRow.array().parse(res.rows);
-  }
-);
+  return ZRow.array().parse(res.rows);
+});
 
 const ZSetGroupName = ZGroup.pick({ id: true, name_: true });
-const setGroupName = withDbErrorHandling(
-  "setGroupName",
-  async (client, values: z.infer<typeof ZSetGroupName>) => {
-    await client.query("UPDATE groups SET name_ = $1 WHERE id = $2", [
-      values.name_,
-      values.id,
-    ]);
-  }
-);
+const setGroupName = withDbErrorHandling("setGroupName", async (client, values: z.infer<typeof ZSetGroupName>) => {
+  await client.query("UPDATE groups SET name_ = $1 WHERE id = $2", [values.name_, values.id]);
+});
 
 const ZGetGroup = ZGroup.pick({}).extend({ group_id: z.number() });
-export const getGroup = withDbErrorHandling(
-  "getGroups",
-  async (client, values: z.infer<typeof ZGetGroup>) => {
-    const res = await client.query("SELECT * from groups WHERE id = $1", [
-      values.group_id,
-    ]);
+export const getGroup = withDbErrorHandling("getGroups", async (client, values: z.infer<typeof ZGetGroup>) => {
+  const res = await client.query("SELECT * from groups WHERE id = $1", [values.group_id]);
 
-    return ZGroup.array().parse(res.rows)[0];
-  }
-);
+  return ZGroup.array().parse(res.rows)[0];
+});
 
 export const groupsRouter = t.router({
   getGroupName: t.procedure.input(ZGetGroupName).query(async (opts) => {
@@ -202,17 +177,15 @@ export const groupsRouter = t.router({
       })
     );
   }),
-  createGroup: t.procedure
-    .input(ZCreateGroupWithWorkspaceParent)
-    .mutation(async (opts) => {
-      return await withTransaction((client) =>
-        createGroup(client, {
-          board_id: opts.input.board_id,
-          name_: opts.input.name_,
-          color: opts.input.color,
-        })
-      );
-    }),
+  createGroup: t.procedure.input(ZCreateGroupWithWorkspaceParent).mutation(async (opts) => {
+    return await withTransaction((client) =>
+      createGroup(client, {
+        board_id: opts.input.board_id,
+        name_: opts.input.name_,
+        color: opts.input.color,
+      })
+    );
+  }),
 
   getGroupData: t.procedure.input(ZGetGroupData).query(async (opts) => {
     return await withTransaction(
