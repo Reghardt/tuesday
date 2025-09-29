@@ -27,6 +27,9 @@ async function ensureStoragePathForCellFileExists(params: {
   let current = path.join(process.cwd(), "uploads");
 
   for (let i = 0; i < sections.length; i++) {
+    if (existsSync(current) === false) {
+      await mkdir(current);
+    }
     const newCurrent = path.join(current, sections[i]);
     if (existsSync(newCurrent) === false) {
       await mkdir(newCurrent);

@@ -139,7 +139,8 @@ export const getRows = withDbErrorHandling("getRows", async (client, values: z.i
         rows.group_id,
         rows.level,
         rows.pos,
-        rows.parent_row_id
+        rows.parent_row_id,
+        rows.children_count
       FROM groups
       JOIN rows ON rows.group_id = groups.id
       WHERE board_id = $1 AND level = $2

@@ -12,7 +12,7 @@ export const ZCellFile = z.object({
   row_id: z.number(),
   column_id: z.number(),
   created_at: z.date(),
-  updated_at: z.date(),
+  // updated_at: z.date(),
   user_id: z.string(),
   name_: z.string(),
   extension: z.string(),
@@ -33,14 +33,7 @@ export const createCellFile = withDbErrorHandling(
     if (extension !== undefined) {
       await client.query(
         "INSERT INTO cell_files(row_id, column_id, user_id, name_, extension, note) VALUES($1, $2, $3, $4, $5, $6)",
-        [
-          values.row_id,
-          values.column_id,
-          values.user_id,
-          values.name_,
-          extension,
-          values.note,
-        ]
+        [values.row_id, values.column_id, values.user_id, values.name_, extension, values.note]
       );
     }
   }
@@ -53,10 +46,10 @@ const ZGetCellFiles = ZCellFile.pick({
 export const getCellFiles = withDbErrorHandling(
   "getCellFiles",
   async (client, values: z.infer<typeof ZGetCellFiles>) => {
-    const res = await client.query(
-      "SELECT * FROM cell_files WHERE column_id = $1 AND row_id = $2",
-      [values.column_id, values.row_id]
-    );
+    const res = await client.query("SELECT * FROM cell_files WHERE column_id = $1 AND row_id = $2", [
+      values.column_id,
+      values.row_id,
+    ]);
 
     return ZCellFile.array().parse(res.rows);
   }
@@ -68,9 +61,7 @@ const ZDeleteCellFile = ZCellFile.pick({
 export const deleteCellFile = withDbErrorHandling(
   "deleteCellFile",
   async (client, values: z.infer<typeof ZDeleteCellFile>) => {
-    const res = await client.query("SELECT * FROM cell_files WHERE id = $1", [
-      values.cell_file_id,
-    ]);
+    const res = await client.query("SELECT * FROM cell_files WHERE id = $1", [values.cell_file_id]);
     const cellFile = ZCellFile.array().parse(res.rows)[0];
     try {
       await unlink(
@@ -88,9 +79,7 @@ export const deleteCellFile = withDbErrorHandling(
       console.log(e);
     }
 
-    await client.query("DELETE FROM cell_files WHERE id = $1", [
-      values.cell_file_id,
-    ]);
+    await client.query("DELETE FROM cell_files WHERE id = $1", [values.cell_file_id]);
   }
 );
 
@@ -115,12 +104,11 @@ const ZCountCellFiles = ZCellFile.pick({
 export const countCellFiles = withDbErrorHandling(
   "countCellFiles",
   async (client, values: z.infer<typeof ZCountCellFiles>) => {
-    const res = await client.query(
-      "SELECT COUNT(*) FROM cell_files WHERE column_id = $1 AND row_id = $2;",
-      [values.column_id, values.row_id]
-    );
-    return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0]
-      .count;
+    const res = await client.query("SELECT COUNT(*) FROM cell_files WHERE column_id = $1 AND row_id = $2;", [
+      values.column_id,
+      values.row_id,
+    ]);
+    return z.object({ count: z.coerce.number() }).array().parse(res.rows)[0].count;
   }
 );
 
