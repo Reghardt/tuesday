@@ -10,7 +10,7 @@ export const ZUpdate = z.object({
   column_id: z.number(),
   is_draft: z.boolean(),
   created_at: z.date(),
-  updated_at: z.date(),
+  // updated_at: z.date(),
   user_id: z.string(),
   note: z.string(),
 });
@@ -36,15 +36,15 @@ const getUpdates = withDbErrorHandling("getUpdates", async (client, values: z.in
         updates.id,
         updates.row_id,
         updates.column_id,
+        updates.is_draft,
         updates.created_at,
-        updates.updated_at,
         updates.user_id,
         updates.note,
         u.email,
         u.name
     FROM updates 
     LEFT JOIN "user" as u ON u.id = updates.user_id
-    WHERE updates.row_id = $1 AND updates.column_id = $2
+    WHERE updates.row_id = $1 AND updates.column_id = $2 AND updates.is_draft = FALSE
     ORDER BY updates.created_at ASC`,
     [values.row_id, values.column_id]
   );
@@ -136,6 +136,24 @@ const setDraftUpdateNote = withDbErrorHandling(
   }
 );
 
+const ZPublishDraftUpdate = ZUpdate.pick({
+  column_id: true,
+  row_id: true,
+  user_id: true,
+});
+const publishDraftUpdate = withDbErrorHandling(
+  "publishDraftUpdate",
+  async (client, values: z.infer<typeof ZPublishDraftUpdate>) => {
+    await client.query(
+      `
+      UPDATE updates 
+      SET is_draft = FALSE, created_at = $1
+      WHERE column_id = $2 AND row_id = $3 AND is_draft = TRUE`,
+      [new Date(), values.column_id, values.row_id]
+    );
+  }
+);
+
 export const updatesRouter = t.router({
   getUpdates: t.procedure.input(ZGetUpdates).query(
     async (opts) =>
@@ -146,20 +164,20 @@ export const updatesRouter = t.router({
         })
       )
   ),
-  createUpdate: t.procedure.input(ZCreateUpdate).mutation(
-    async (opts) =>
-      await withTransaction(
-        async (client) =>
-          await createUpdate(client, {
-            row_id: opts.input.row_id,
-            column_id: opts.input.column_id,
-            user_id: opts.input.user_id,
-            note: opts.input.note,
-            is_draft: opts.input.is_draft,
-          })
-      )
-  ),
-  setDraftUpdateNote: t.procedure.input(ZCreateUpdate).mutation(
+  // createUpdate: t.procedure.input(ZCreateUpdate).mutation(
+  //   async (opts) =>
+  //     await withTransaction(
+  //       async (client) =>
+  //         await createUpdate(client, {
+  //           row_id: opts.input.row_id,
+  //           column_id: opts.input.column_id,
+  //           user_id: opts.input.user_id,
+  //           note: opts.input.note,
+  //           is_draft: opts.input.is_draft,
+  //         })
+  //     )
+  // ),
+  setDraftUpdateNote: t.procedure.input(ZSetDraftUpdateNote).mutation(
     async (opts) =>
       await withTransaction(
         async (client) =>
@@ -174,6 +192,15 @@ export const updatesRouter = t.router({
   getLatestDraftUpdate: t.procedure.input(ZGetDraftUpdate).query(async (opts) => {
     return await withTransaction(async (client) => {
       return await getDraftUpdate(client, {
+        row_id: opts.input.row_id,
+        column_id: opts.input.column_id,
+        user_id: opts.input.user_id,
+      });
+    });
+  }),
+  publishDraftUpdate: t.procedure.input(ZPublishDraftUpdate).mutation(async (opts) => {
+    return await withTransaction(async (client) => {
+      return await publishDraftUpdate(client, {
         row_id: opts.input.row_id,
         column_id: opts.input.column_id,
         user_id: opts.input.user_id,

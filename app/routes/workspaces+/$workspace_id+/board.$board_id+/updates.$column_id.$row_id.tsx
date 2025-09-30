@@ -33,18 +33,10 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
     })
   );
 
-  const setDraftUpdateNoteMutation = useQuery(
-    trpc.updates.setDraftUpdateNote.mutationOptions({
-      column_id: Number(params.column_id),
-      row_id: Number(params.row_id),
-      user_id: loaderData.user_id,
-    })
-  );
+  const setDraftUpdateNoteMutation = useMutation(trpc.updates.setDraftUpdateNote.mutationOptions());
 
-  console.log(getLatestDraftUpdateQuery.data);
-
-  const createUpdateMutation = useMutation(
-    trpc.updates.createUpdate.mutationOptions({
+  const publishDraftUpdateMutation = useMutation(
+    trpc.updates.publishDraftUpdate.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.updates.getUpdates.queryKey({
@@ -52,16 +44,31 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
             column_id: Number(params.column_id),
           }),
         });
-        setNote("");
         queryClient.invalidateQueries({
-          queryKey: trpc.cells.getCell.queryKey({
+          queryKey: trpc.updates.getLatestDraftUpdate.queryKey({
             row_id: Number(params.row_id),
             column_id: Number(params.column_id),
+            user_id: loaderData.user_id,
           }),
         });
       },
     })
   );
+
+  // const createUpdateMutation = useMutation(
+  //   trpc.updates.createUpdate.mutationOptions({
+  //     onSuccess: () => {
+
+  //       setNote("");
+  //       queryClient.invalidateQueries({
+  //         queryKey: trpc.cells.getCell.queryKey({
+  //           row_id: Number(params.row_id),
+  //           column_id: Number(params.column_id),
+  //         }),
+  //       });
+  //     },
+  //   })
+  // );
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-black/70">
@@ -86,32 +93,40 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
           ))}
         </div>
 
-        {/* Input area */}
-        <div className="border-t border-neutral-700 px-4 py-3 bg-neutral-900">
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Write an update..."
-            className="w-full border border-neutral-700 bg-neutral-800 text-gray-200 rounded-lg p-2 text-sm resize-none focus:outline-none focus:ring focus:ring-blue-500/30"
-            rows={3}
-          />
-          <div className="flex justify-end mt-2">
-            <button
-              // onClick={() =>
-              //   createUpdateMutation.mutate({
-              //     row_id: Number(params.row_id),
-              //     column_id: Number(params.column_id),
-              //     user_id: loaderData.user_id,
-              //     note,
-              //   })
-              // }
-              disabled={!note.trim()}
-              className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg shadow hover:bg-blue-700 disabled:opacity-50"
-            >
-              Post
-            </button>
+        {getLatestDraftUpdateQuery.data !== undefined ? (
+          <div className="border-t border-neutral-700 px-4 py-3 bg-neutral-900" key={getLatestDraftUpdateQuery.data.id}>
+            <textarea
+              onChange={(e) => {
+                setDraftUpdateNoteMutation.mutate({
+                  row_id: getLatestDraftUpdateQuery.data.row_id,
+                  column_id: getLatestDraftUpdateQuery.data.column_id,
+                  user_id: loaderData.user_id,
+                  note: e.target.value,
+                });
+              }}
+              defaultValue={getLatestDraftUpdateQuery.data.note}
+              placeholder="Write an update..."
+              className="w-full border border-neutral-700 bg-neutral-800 text-gray-200 rounded-lg p-2 text-sm resize-none focus:outline-none focus:ring focus:ring-blue-500/30"
+              rows={3}
+            />
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={() =>
+                  publishDraftUpdateMutation.mutate({
+                    row_id: Number(params.row_id),
+                    column_id: Number(params.column_id),
+                    user_id: loaderData.user_id,
+                  })
+                }
+                className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg shadow hover:bg-blue-700 disabled:opacity-50"
+              >
+                Post
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );
