@@ -158,7 +158,6 @@ const ZDeleteRow = ZRow.pick({
 });
 const deleteRow = withDbErrorHandling("deleteRow", async (client, values: z.infer<typeof ZDeleteRow>) => {
   const row_to_delete = await getRow(client, { row_id: values.id });
-  console.log("row to delete", row_to_delete);
   await client.query(`DELETE FROM rows WHERE id = $1`, [values.id]);
 
   if (row_to_delete.parent_row_id !== null) {

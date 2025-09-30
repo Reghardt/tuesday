@@ -235,6 +235,8 @@ const UpdatesCell: FC<{
     staleTime: 0,
   });
 
+  console.log(getCellQuery.data);
+
   return (
     <button
       onClick={() => {

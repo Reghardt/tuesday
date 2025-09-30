@@ -14,9 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Component({ params, loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
-  const [note, setNote] = useState("");
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
 
   const getUpdatesQuery = useQuery(
     trpc.updates.getUpdates.queryOptions({
@@ -37,18 +35,26 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
 
   const publishDraftUpdateMutation = useMutation(
     trpc.updates.publishDraftUpdate.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({
+      onSuccess: async (_, __, ___, context) => {
+        context.client.invalidateQueries({
           queryKey: trpc.updates.getUpdates.queryKey({
             row_id: Number(params.row_id),
             column_id: Number(params.column_id),
           }),
         });
-        queryClient.invalidateQueries({
+
+        context.client.invalidateQueries({
           queryKey: trpc.updates.getLatestDraftUpdate.queryKey({
             row_id: Number(params.row_id),
             column_id: Number(params.column_id),
             user_id: loaderData.user_id,
+          }),
+        });
+
+        context.client.invalidateQueries({
+          queryKey: trpc.cells.getCell.queryKey({
+            row_id: Number(params.row_id),
+            column_id: Number(params.column_id),
           }),
         });
       },

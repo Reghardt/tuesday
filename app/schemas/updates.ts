@@ -21,7 +21,7 @@ const countUpdates = withDbErrorHandling("countUpdates", async (client, values: 
     `
     SELECT COUNT(*)
     FROM updates 
-    WHERE updates.row_id = $1 AND updates.column_id = $2
+    WHERE updates.row_id = $1 AND updates.column_id = $2 AND updates.is_draft = FALSE
     `,
     [values.row_id, values.column_id]
   );
@@ -53,36 +53,27 @@ const getUpdates = withDbErrorHandling("getUpdates", async (client, values: z.in
     .parse(res.rows);
 });
 
-const ZCreateUpdate = ZUpdate.pick({
+const ZCreateDraftUpdate = ZUpdate.pick({
   row_id: true,
   column_id: true,
-  is_draft: true,
   user_id: true,
   note: true,
 });
-const createUpdate = withDbErrorHandling("createUpdate", async (client, values: z.infer<typeof ZCreateUpdate>) => {
-  const update = ZUpdate.array().parse(
-    (
-      await client.query(
-        `INSERT INTO updates(row_id, column_id, user_id, note, is_draft) VALUES($1, $2, $3, $4, $5) RETURNING *`,
-        [values.row_id, values.column_id, values.user_id, values.note, values.is_draft]
-      )
-    ).rows
-  )[0];
+const createDraftUpdate = withDbErrorHandling(
+  "createDraftUpdate",
+  async (client, values: z.infer<typeof ZCreateDraftUpdate>) => {
+    const update = ZUpdate.array().parse(
+      (
+        await client.query(
+          `INSERT INTO updates(row_id, column_id, user_id, note, is_draft) VALUES($1, $2, $3, $4, $5) RETURNING *`,
+          [values.row_id, values.column_id, values.user_id, values.note, true]
+        )
+      ).rows
+    )[0];
 
-  const count = await countUpdates(client, {
-    row_id: values.row_id,
-    column_id: values.column_id,
-  });
-
-  await setCellContent(client, {
-    row_id: values.row_id,
-    column_id: values.column_id,
-    content: { updates: count },
-  });
-
-  return update;
-});
+    return update;
+  }
+);
 
 const ZGetDraftUpdate = ZUpdate.pick({
   column_id: true,
@@ -106,10 +97,9 @@ const getDraftUpdate = withDbErrorHandling(
     if (draft) {
       return draft;
     } else {
-      return await createUpdate(client, {
+      return await createDraftUpdate(client, {
         row_id: values.row_id,
         column_id: values.column_id,
-        is_draft: true,
         user_id: values.user_id,
         note: "",
       });
@@ -151,6 +141,17 @@ const publishDraftUpdate = withDbErrorHandling(
       WHERE column_id = $2 AND row_id = $3 AND is_draft = TRUE`,
       [new Date(), values.column_id, values.row_id]
     );
+
+    const count = await countUpdates(client, {
+      row_id: values.row_id,
+      column_id: values.column_id,
+    });
+
+    await setCellContent(client, {
+      row_id: values.row_id,
+      column_id: values.column_id,
+      content: { updates: count },
+    });
   }
 );
 

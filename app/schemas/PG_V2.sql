@@ -109,15 +109,14 @@ create table IF NOT EXISTS "verification" ("id" text not null primary key, "iden
 
 CREATE TABLE IF NOT EXISTS updates(
     id SERIAL PRIMARY KEY,
-    row_id INTEGER NOT NULL REFERENCES rows(id),  
-    column_id INTEGER NOT NULL REFERENCES columns(id),
+    row_id INTEGER NOT NULL REFERENCES rows(id) ON DELETE CASCADE,
+    column_id INTEGER NOT NULL REFERENCES columns(id) ON DELETE CASCADE,
     is_draft BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     user_id TEXT NOT NULL REFERENCES "user"(id), -- user should not be able to be deleted if they wrote an update, no cascade
     note TEXT,
-    parent_update_id INTEGER REFERENCES updates(id) ON DELETE CASCADE,
-    FOREIGN KEY (row_id, column_id) REFERENCES cells(row_id, column_id) ON DELETE CASCADE
+    parent_update_id INTEGER REFERENCES updates(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS update_files(
