@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
+import { evaluate } from "mathjs";
 import type { z } from "zod";
 import {
   dateColumnTypeCodec,
@@ -13,9 +14,13 @@ import {
 import type { ZGroupCellExtended } from "~/schemas/groups";
 import { useTRPC } from "~/utils/trpc/trpc";
 
-const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.cells.setCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -33,29 +38,61 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) =>
   );
 };
 
-const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
+  const [expression, setExpression] = useState(
+    String(numberColumnTypeCodec.decode(cell.content))
+  );
+
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.cells.setCellContent.mutationOptions()
+  );
+
+  function onDone() {
+    try {
+      const res = evaluate(expression);
+      setExpression(res);
+      useSetGroupCellContent.mutate({
+        row_id: cell.row_id,
+        column_id: cell.column_id,
+        content: numberColumnTypeCodec.encode(Number(res)),
+      });
+    } catch (e) {
+      console.log("math error");
+    }
+  }
 
   return (
     <input
-      onChange={(e) =>
-        useSetGroupCellContent.mutate({
-          row_id: cell.row_id,
-          column_id: cell.column_id,
-          content: numberColumnTypeCodec.encode(Number(e.target.value)),
-        })
-      }
+      onChange={(e) => setExpression(e.target.value)}
+      onBlur={() => onDone()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          onDone();
+        }
+      }}
+      // onChange={(e) =>
+      //   useSetGroupCellContent.mutate({
+      //     row_id: cell.row_id,
+      //     column_id: cell.column_id,
+      //     content: numberColumnTypeCodec.encode(Number(e.target.value)),
+      //   })
+      // }
       className="p-1 focus:outline-hidden w-full"
-      type="number"
-      defaultValue={numberColumnTypeCodec.decode(cell.content)}
+      value={expression}
     />
   );
 };
 
-const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({ cell }) => {
+const DateCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
+  cell,
+}) => {
   const trpc = useTRPC();
-  const useSetGroupCellContent = useMutation(trpc.cells.setCellContent.mutationOptions());
+  const useSetGroupCellContent = useMutation(
+    trpc.cells.setCellContent.mutationOptions()
+  );
 
   return (
     <input
@@ -89,7 +126,9 @@ const LabelsCell: FC<{
     staleTime: 0,
   });
 
-  const getLabelsQuery = useQuery(trpc.labels.getLabels.queryOptions({ column_id: cell.column_id }));
+  const getLabelsQuery = useQuery(
+    trpc.labels.getLabels.queryOptions({ column_id: cell.column_id })
+  );
 
   let text = "No Label";
   let color = "#4a5565";
