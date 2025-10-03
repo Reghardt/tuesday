@@ -166,7 +166,7 @@ const UploadFileComponent: FC<{
   async function uploadDocument() {
     setIsUploading(true);
     await axios.postForm(
-      "http://localhost:5173/api/upload",
+      "http://localhost:5173/api/upload_cell_file",
       {
         file: file,
         column_id: storage_path.column_id,

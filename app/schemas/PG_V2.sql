@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS update_files(
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     name_ TEXT NOT NULL,
     extension TEXT NOT NULL,
+    note TEXT,
     UNIQUE(update_id, name_)
 );
 

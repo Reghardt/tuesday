@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { redirect, useNavigate } from "react-router";
 import { useTRPC } from "~/utils/trpc/trpc";
-import { useState } from "react";
+import { useState, type FC } from "react";
 import { getSessionUser } from "~/utils/auth.server";
 import type { Route } from "./+types/updates.$column_id.$row_id";
 import CloseIcon from "~/components/icons/CloseIcon";
+import axios from "axios";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getSessionUser(request);
@@ -12,9 +13,24 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { user_id: user.id };
 }
 
-export default function Component({ params, loaderData }: Route.ComponentProps) {
+export default function Component({
+  params,
+  loaderData,
+}: Route.ComponentProps) {
   const navigate = useNavigate();
   const trpc = useTRPC();
+
+  const [uploadsQueue, setUploadsQueue] = useState<File[]>([]);
+
+  function setUploadsQueueOnChange(fileList: FileList | null) {
+    const files: File[] = [];
+    if (fileList) for (const file of fileList) files.push(file);
+    setUploadsQueue(files);
+  }
+
+  function removeFileFromUploadsQueue(name: string) {
+    setUploadsQueue((prev) => prev.filter((file) => file.name !== name));
+  }
 
   const getUpdatesQuery = useQuery(
     trpc.updates.getUpdates.queryOptions({
@@ -28,10 +44,13 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
       column_id: Number(params.column_id),
       row_id: Number(params.row_id),
       user_id: loaderData.user_id,
+      has_recursion_occurred: false, // this arg is ignored if received from the client
     })
   );
 
-  const setDraftUpdateNoteMutation = useMutation(trpc.updates.setDraftUpdateNote.mutationOptions());
+  const setDraftUpdateNoteMutation = useMutation(
+    trpc.updates.setDraftUpdateNote.mutationOptions()
+  );
 
   const publishDraftUpdateMutation = useMutation(
     trpc.updates.publishDraftUpdate.mutationOptions({
@@ -81,7 +100,10 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
       <div className="w-full max-w-2xl h-[80%] bg-neutral-900 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-700">
           <h2 className="text-lg font-semibold text-white">Updates</h2>
-          <button onClick={() => navigate(-1)} className="p-1 rounded-full hover:bg-neutral-800">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-1 rounded-full hover:bg-neutral-800"
+          >
             <CloseIcon className=" text-red-600 " />
           </button>
         </div>
@@ -89,18 +111,42 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
         {/* Updates list */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {getUpdatesQuery.data?.map((update) => (
-            <div key={update.id} className="border border-neutral-700 rounded-lg p-3 bg-neutral-800">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-sm text-white">{update.name}</span>
-                <span className="text-xs text-gray-400">{new Date(update.created_at).toLocaleString()}</span>
+            <div>
+              <div
+                key={update.id}
+                className="border border-neutral-700 rounded-lg p-3 bg-neutral-800"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-sm text-white">
+                    {update.name}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {new Date(update.created_at).toLocaleString()}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-200 whitespace-pre-line">
+                  {update.note}
+                </p>
               </div>
-              <p className="text-sm text-gray-200 whitespace-pre-line">{update.note}</p>
+
+              {update.files ? (
+                <>
+                  {update.files.map((file) => {
+                    return <div className=" text-xs">{file.name_}</div>;
+                  })}
+                </>
+              ) : (
+                <></>
+              )}
             </div>
           ))}
         </div>
 
         {getLatestDraftUpdateQuery.data !== undefined ? (
-          <div className="border-t border-neutral-700 px-4 py-3 bg-neutral-900" key={getLatestDraftUpdateQuery.data.id}>
+          <div
+            className="border-t border-neutral-700 px-4 py-3 bg-neutral-900"
+            key={getLatestDraftUpdateQuery.data.id}
+          >
             <textarea
               onChange={(e) => {
                 setDraftUpdateNoteMutation.mutate({
@@ -115,6 +161,53 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
               className="w-full border border-neutral-700 bg-neutral-800 text-gray-200 rounded-lg p-2 text-sm resize-none focus:outline-none focus:ring focus:ring-blue-500/30"
               rows={3}
             />
+
+            {getLatestDraftUpdateQuery.data.files ? (
+              <>
+                {getLatestDraftUpdateQuery.data.files.map((file) => {
+                  return <div>{file.name_}</div>;
+                })}
+              </>
+            ) : (
+              <></>
+            )}
+
+            <div>
+              <label htmlFor="file" className=" bg-blue-700 p-1 rounded">
+                Select Files
+              </label>
+              <input
+                onChange={(e) => setUploadsQueueOnChange(e.target.files)}
+                className="hidden"
+                id="file"
+                type="file"
+                multiple
+              />
+              {uploadsQueue.length ? (
+                <table>
+                  <tbody>
+                    {uploadsQueue.map((file) => {
+                      return (
+                        <UploadFileComponent
+                          key={file.name}
+                          file={file}
+                          storage_path={{
+                            update_id: String(
+                              getLatestDraftUpdateQuery.data.id
+                            ),
+                          }}
+                          removeFileFromUploadsQueue={
+                            removeFileFromUploadsQueue
+                          }
+                        />
+                      );
+                    })}
+                  </tbody>
+                </table>
+              ) : (
+                <></>
+              )}
+            </div>
             <div className="flex justify-end mt-2">
               <button
                 onClick={() =>
@@ -137,3 +230,64 @@ export default function Component({ params, loaderData }: Route.ComponentProps) 
     </div>
   );
 }
+
+const UploadFileComponent: FC<{
+  file: File;
+  storage_path: {
+    update_id: string;
+  };
+  removeFileFromUploadsQueue(name: string): void;
+}> = ({ file, storage_path, removeFileFromUploadsQueue }) => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  async function uploadDocument() {
+    setIsUploading(true);
+    await axios.postForm(
+      "http://localhost:5173/api/upload_update_file",
+      {
+        file: file,
+        update_id: storage_path.update_id,
+        note: "Hello",
+      },
+      {
+        onUploadProgress: (progress) => {
+          console.log(progress.progress);
+          if (progress.progress !== undefined) {
+            setUploadProgress(Math.trunc(progress.progress * 100));
+          }
+        },
+      }
+    );
+    // queryClient.invalidateQueries({
+    //   queryKey: trpc.cellFiles.getCellFiles.queryKey({
+    //     column_id: Number(storage_path.column_id),
+    //     row_id: Number(storage_path.row_id),
+    //   }),
+    // });
+    // queryClient.invalidateQueries({
+    //   queryKey: trpc.cells.getCell.queryKey({
+    //     column_id: Number(storage_path.column_id),
+    //     row_id: Number(storage_path.row_id),
+    //   }),
+    // });
+    removeFileFromUploadsQueue(file.name);
+  }
+
+  return (
+    <tr>
+      <td>{file.name}</td>
+
+      {isUploading ? (
+        <td>{uploadProgress}</td>
+      ) : (
+        <button className="bg-blue-500 p-2" onClick={() => uploadDocument()}>
+          Upload
+        </button>
+      )}
+    </tr>
+  );
+};

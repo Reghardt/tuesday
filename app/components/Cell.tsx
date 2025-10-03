@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import { evaluate } from "mathjs";
-import type { z } from "zod";
+import { z } from "zod";
 import {
   dateColumnTypeCodec,
   numberColumnTypeCodec,
@@ -41,6 +41,7 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
 const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   cell,
 }) => {
+  console.log(cell.content);
   const [expression, setExpression] = useState(
     String(numberColumnTypeCodec.decode(cell.content))
   );
@@ -52,12 +53,14 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
 
   function onDone() {
     try {
-      const res = evaluate(expression);
-      setExpression(res);
+      const res = z.number().parse(evaluate(expression));
+      console.log(res);
+      setExpression(String(res));
+
       useSetGroupCellContent.mutate({
         row_id: cell.row_id,
         column_id: cell.column_id,
-        content: numberColumnTypeCodec.encode(Number(res)),
+        content: numberColumnTypeCodec.encode(res),
       });
     } catch (e) {
       console.log("math error");
