@@ -169,7 +169,7 @@ const getDraftUpdate = withDbErrorHandling(
             'name_', update_files.name_,
             'extension', update_files.extension,
             'note', update_files.note
-          ) ORDER BY update_files.name_ ASC
+          ) ORDER BY update_files.created_at ASC
         ) FILTER (WHERE update_files.id IS NOT NULL),
         '[]'::json
       ) as files

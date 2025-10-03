@@ -111,11 +111,8 @@ export default function Component({
         {/* Updates list */}
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
           {getUpdatesQuery.data?.map((update) => (
-            <div>
-              <div
-                key={update.id}
-                className="border border-neutral-700 rounded-lg p-3 bg-neutral-800"
-              >
+            <div key={update.id}>
+              <div className="border border-neutral-700 rounded-lg p-3 bg-neutral-800">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-sm text-white">
                     {update.name}
@@ -132,7 +129,25 @@ export default function Component({
               {update.files ? (
                 <>
                   {update.files.map((file) => {
-                    return <div className=" text-xs">{file.name_}</div>;
+                    return (
+                      <div key={file.id} className="flex gap-2 text-xs">
+                        <div>{file.name_}</div>
+                        <a
+                          className="bg-blue-500 w-fit p-1 rounded"
+                          href={`http://localhost:5173/api/get_update_file/${file.update_id}/inline/${file.name_}`}
+                          target="_blank"
+                        >
+                          Open
+                        </a>
+                        <a
+                          className="bg-blue-500 w-fit p-1 rounded"
+                          href={`http://localhost:5173/api/get_update_file/${file.update_id}/attachment/${file.name_}`}
+                          target="_blank"
+                        >
+                          Download
+                        </a>
+                      </div>
+                    );
                   })}
                 </>
               ) : (
@@ -165,7 +180,7 @@ export default function Component({
             {getLatestDraftUpdateQuery.data.files ? (
               <>
                 {getLatestDraftUpdateQuery.data.files.map((file) => {
-                  return <div>{file.name_}</div>;
+                  return <div key={file.id}>{file.name_}</div>;
                 })}
               </>
             ) : (
@@ -191,6 +206,9 @@ export default function Component({
                         <UploadFileComponent
                           key={file.name}
                           file={file}
+                          column_id={Number(params.column_id)}
+                          row_id={Number(params.row_id)}
+                          user_id={loaderData.user_id}
                           storage_path={{
                             update_id: String(
                               getLatestDraftUpdateQuery.data.id
@@ -236,8 +254,18 @@ const UploadFileComponent: FC<{
   storage_path: {
     update_id: string;
   };
+  row_id: number;
+  column_id: number;
+  user_id: string;
   removeFileFromUploadsQueue(name: string): void;
-}> = ({ file, storage_path, removeFileFromUploadsQueue }) => {
+}> = ({
+  file,
+  storage_path,
+  column_id,
+  row_id,
+  user_id,
+  removeFileFromUploadsQueue,
+}) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -262,18 +290,14 @@ const UploadFileComponent: FC<{
         },
       }
     );
-    // queryClient.invalidateQueries({
-    //   queryKey: trpc.cellFiles.getCellFiles.queryKey({
-    //     column_id: Number(storage_path.column_id),
-    //     row_id: Number(storage_path.row_id),
-    //   }),
-    // });
-    // queryClient.invalidateQueries({
-    //   queryKey: trpc.cells.getCell.queryKey({
-    //     column_id: Number(storage_path.column_id),
-    //     row_id: Number(storage_path.row_id),
-    //   }),
-    // });
+    queryClient.invalidateQueries({
+      queryKey: trpc.updates.getLatestDraftUpdate.queryKey({
+        column_id: Number(column_id),
+        row_id: Number(row_id),
+        user_id: user_id,
+        has_recursion_occurred: false,
+      }),
+    });
     removeFileFromUploadsQueue(file.name);
   }
 
