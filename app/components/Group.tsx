@@ -45,10 +45,17 @@ const Group: FC<{
     })
   );
 
-  function createTable(rows: typeof getGroupDataQuery.data, columns: typeof getGroupColumnsQuery.data) {
+  function createTable(
+    rows: typeof getGroupDataQuery.data,
+    columns: typeof getGroupColumnsQuery.data
+  ) {
     return (
       <div className="w-full">
-        {level === 0 ? <GroupName name={group.name_} group_id={group.id} /> : <></>}
+        {level === 0 ? (
+          <GroupName name={group.name_} group_id={group.id} />
+        ) : (
+          <></>
+        )}
 
         <div className="grid grid-cols-[auto_1fr] w-full ">
           {level > 0 ? (
@@ -66,7 +73,10 @@ const Group: FC<{
             <div className="min-w-8 border-t border-l border-neutral-700"></div>
             {columns?.map((column) => {
               return (
-                <div key={column.id} className="text-left border-t border-l border-neutral-700 w-60">
+                <div
+                  key={column.id}
+                  className="text-left border-t border-l border-neutral-700 w-60"
+                >
                   <ColumnHeading column={column} />
                 </div>
               );
@@ -95,13 +105,7 @@ const Group: FC<{
 
       {(getGroupColumnsQuery.data?.length ?? 0) > 0 ? (
         <div className="grid grid-cols-[auto_auto_1fr] w-full  ">
-          {level > 0 ? (
-            <div className="w-8">
-              {/* <div className="border-b h-4 rounded-bl-lg border-l-2 translate-x-[-1px] w-[calc(100%+1px)]"></div> */}
-            </div>
-          ) : (
-            <div></div>
-          )}
+          {level > 0 ? <div className="w-8"></div> : <div></div>}
           <div className="border-l-4" />
           <div className="border-t border-b border-neutral-700 w-full ">
             <button

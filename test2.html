@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resizable Flex Table (CSS Vars)</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+      }
+
+      .table {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #ccc;
+      }
+
+      .row {
+        display: flex;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .cell {
+        border-right: 1px solid #ddd;
+        padding: 8px;
+        box-sizing: border-box;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      /* optional visual cue for resizing */
+      .resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 5px;
+        cursor: ew-resize;
+        height: 100%;
+        background: transparent;
+      }
+
+      .header {
+        position: relative;
+        background: #f8f8f8;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="table" id="table">
+      <div class="row header">
+        <div class="cell" data-col="0">
+          Name
+          <div class="resizer" data-col="0"></div>
+        </div>
+        <div class="cell" data-col="1">
+          Email
+          <div class="resizer" data-col="1"></div>
+        </div>
+        <div class="cell" data-col="2">
+          Age
+          <div class="resizer" data-col="2"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="cell" data-col="0">Alice</div>
+        <div class="cell" data-col="1">alice@example.com</div>
+        <div class="cell" data-col="2">30</div>
+      </div>
+      <div class="row">
+        <div class="cell" data-col="0">Bob</div>
+        <div class="cell" data-col="1">bob@example.com</div>
+        <div class="cell" data-col="2">28</div>
+      </div>
+    </div>
+
+    <script>
+      document.documentElement;
+      // Initial widths
+      const columnWidths = {
+        0: 150,
+        1: 250,
+        2: 80,
+      };
+
+      // Apply initial widths as CSS variables
+      function applyColumnWidths() {
+        const root = document.documentElement;
+        for (const [index, width] of Object.entries(columnWidths)) {
+          root.style.setProperty(`--col-${index}-width`, `${width}px`);
+        }
+      }
+
+      applyColumnWidths();
+
+      // Enable resizing
+      let isResizing = false;
+      let currentCol = null;
+      let startX = 0;
+      let startWidth = 0;
+
+      document.querySelectorAll(".resizer").forEach((resizer) => {
+        resizer.addEventListener("mousedown", (e) => {
+          isResizing = true;
+          currentCol = resizer.dataset.col;
+          startX = e.clientX;
+          startWidth = columnWidths[currentCol];
+          document.body.style.cursor = "ew-resize";
+          document.body.style.userSelect = "none";
+        });
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!isResizing) return;
+        const delta = e.clientX - startX;
+        const newWidth = Math.max(50, startWidth + delta);
+        columnWidths[currentCol] = newWidth;
+        document.documentElement.style.setProperty(
+          `--col-${currentCol}-width`,
+          `${newWidth}px`
+        );
+      });
+
+      document.addEventListener("mouseup", () => {
+        if (!isResizing) return;
+        isResizing = false;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      });
+    </script>
+  </body>
+</html>

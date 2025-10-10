@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resizable Column</title>
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+      }
+
+      /* Left column */
+      .sidebar {
+        background: #f4f4f4;
+        width: 250px;
+        min-width: 100px;
+        max-width: 600px;
+        position: relative;
+      }
+
+      /* Drag handle */
+      .resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 6px;
+        cursor: ew-resize;
+        background: #ccc;
+        height: 100%;
+        transition: background 0.2s;
+      }
+
+      .resizer:hover {
+        background: #999;
+      }
+
+      /* Content area */
+      .content {
+        flex: 1;
+        background: #fff;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <div class="resizer"></div>
+    </div>
+    <div class="content">
+      <h1>Resizable Column Example</h1>
+      <p>Drag the grey bar to resize the sidebar.</p>
+    </div>
+
+    <script>
+      const sidebar = document.querySelector(".sidebar");
+      const resizer = document.querySelector(".resizer");
+
+      let isResizing = false;
+
+      resizer.addEventListener("mousedown", (e) => {
+        isResizing = true;
+        document.body.style.cursor = "ew-resize";
+        document.body.style.userSelect = "none";
+      });
+
+      document.addEventListener("mousemove", (e) => {
+        if (!isResizing) return;
+        const newWidth = e.clientX;
+        if (newWidth > 100 && newWidth < 600) {
+          sidebar.style.width = `${newWidth}px`;
+        }
+      });
+
+      document.addEventListener("mouseup", () => {
+        isResizing = false;
+        document.body.style.cursor = "default";
+        document.body.style.userSelect = "";
+      });
+    </script>
+  </body>
+</html>
