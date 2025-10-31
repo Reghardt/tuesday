@@ -11,8 +11,9 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TRPCProvider } from "./utils/trpc/trpc";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AppRouter } from "./utils/trpc/router.server";
+import { dex } from "./utils/dexie";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -72,6 +73,12 @@ function getQueryClient() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const res = dex.column_widths;
+
+    console.log(res);
+  }, []);
+
   const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({

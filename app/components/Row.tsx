@@ -1,6 +1,10 @@
 import { useState, type FC } from "react";
 import type z from "zod";
-import type { ZGetGroupDataResult, ZGroup, ZGroupCellExtended } from "~/schemas/groups";
+import type {
+  ZGetGroupDataResult,
+  ZGroup,
+  ZGroupCellExtended,
+} from "~/schemas/groups";
 import { Cell } from "./Cell";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "~/utils/trpc/trpc";
@@ -42,12 +46,20 @@ const Row: FC<{
         <div className="border-l-4"></div>
 
         <div className="min-w-8 border-t border-neutral-700 flex justify-center items-center ">
-          <RowCheckbox group_id={row.group_id} level={row.level} row_id={row.id} />
+          <RowCheckbox
+            group_id={row.group_id}
+            level={row.level}
+            row_id={row.id}
+          />
         </div>
         <div className="text-left border-t border-l border-neutral-700 w-8 min-w-8 flex items-center justify-center">
           <button
             onClick={() => setExpanded((expanded) => !expanded)}
-            style={{ color: `${row.children_count > 0 ? "#E5E4E2" : "rgba(122, 122, 122, 0.4)"}` }}
+            style={{
+              color: `${
+                row.children_count > 0 ? "#E5E4E2" : "rgba(122, 122, 122, 0.4)"
+              }`,
+            }}
           >
             <Chevron rotate={expanded ? 0 : -90} />
           </button>
@@ -56,14 +68,19 @@ const Row: FC<{
           return (
             <div
               key={`${cell.column_id}_${cell.row_id}`}
-              className="text-left border-t border-l border-neutral-700 w-60 min-w-60"
+              style={{ width: `var(--${cell.column_id}, 400px)` }}
+              className="text-left border-t border-l border-neutral-700"
             >
               <Cell cell={cell} board_id={group.board_id} />
             </div>
           );
         })}
 
-        {row.cells_arr.length > 0 ? <div className="border-t border-l border-neutral-700 w-full flex"></div> : <></>}
+        {row.cells_arr.length > 0 ? (
+          <div className="border-t border-l border-neutral-700 w-full flex"></div>
+        ) : (
+          <></>
+        )}
       </div>
       {expanded ? (
         <>
@@ -71,7 +88,10 @@ const Row: FC<{
             className="w-full border-t border-neutral-700"
             style={{ transform: `translateX(${level === 0 ? 0 : 32}px)` }}
           ></div>
-          <div className="flex w-full" style={{ paddingLeft: `${level === 0 ? 0 : 32}px` }}>
+          <div
+            className="flex w-full"
+            style={{ paddingLeft: `${level === 0 ? 0 : 32}px` }}
+          >
             <div className="border-l-2 translate-x-[1px] -my-2"></div>
             <div className="py-4 w-full">
               <Group group={group} level={level + 1} parent_row_id={row.id} />

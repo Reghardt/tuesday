@@ -2,7 +2,7 @@ import Dexie, { type EntityTable } from "dexie";
 
 interface IColumnWidths {
   id: number;
-  width: string;
+  width: number;
 }
 
 const dex = new Dexie("ColumnWidthDatabase") as Dexie & {

@@ -73,14 +73,7 @@ const Group: FC<{
             </div>
             <div className="min-w-8 border-t border-l border-neutral-700"></div>
             {columns?.map((column) => {
-              return (
-                <div
-                  key={column.id}
-                  className="text-left border-t border-l border-neutral-700 w-60"
-                >
-                  <ColumnHeading column={column} />
-                </div>
-              );
+              return <ColumnHeading column={column} key={column.id} />;
             })}
             <div className="text-left border-t border-l border-neutral-700 w-full p-1">
               <button

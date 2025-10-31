@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 
 export default function Component() {
   const resizer = useRef<HTMLDivElement>(null);
-  const sideBar = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     resizer.current?.addEventListener("mousedown", (e) => {
@@ -10,10 +9,13 @@ export default function Component() {
       document.body.style.userSelect = "none";
 
       const handleMouseMove = (e: MouseEvent) => {
-        sideBar.current!.style.width = `${e.clientX}px`;
+        document.documentElement.style.setProperty(
+          `--test-width`,
+          `${e.clientX}px`
+        );
       };
 
-      const handleMouseUp = (e: MouseEvent) => {
+      const handleMouseUp = () => {
         document.body.style.cursor = "default";
         document.body.style.userSelect = "";
         document.removeEventListener("mousemove", handleMouseMove);
@@ -28,8 +30,8 @@ export default function Component() {
   return (
     <div className="flex">
       <div
-        ref={sideBar}
-        className="bg-neutral-400 w-40 min-w-10 max-w-60 relative"
+        style={{ width: "var(--test-width, 100px)" }}
+        className="bg-neutral-400  min-w-10 max-w-60 relative"
       >
         Content
         <div
