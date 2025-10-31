@@ -9,6 +9,7 @@ import LevelCheckbox from "./LevelCheckbox";
 import type z from "zod";
 import type { ZGroup } from "~/schemas/groups";
 import GroupName from "./GroupName";
+import { dex } from "~/utils/dexie";
 
 const Group: FC<{
   group: z.infer<typeof ZGroup>;

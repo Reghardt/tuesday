@@ -41,7 +41,6 @@ const TextCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
 const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   cell,
 }) => {
-  console.log(cell.content);
   const [expression, setExpression] = useState(
     String(numberColumnTypeCodec.decode(cell.content))
   );
@@ -54,7 +53,6 @@ const NumberCell: FC<{ cell: z.infer<typeof ZGroupCellExtended> }> = ({
   function onDone() {
     try {
       const res = z.number().parse(evaluate(expression));
-      console.log(res);
       setExpression(String(res));
 
       useSetGroupCellContent.mutate({
@@ -276,8 +274,6 @@ const UpdatesCell: FC<{
     initialData: cell,
     staleTime: 0,
   });
-
-  console.log(getCellQuery.data);
 
   return (
     <button

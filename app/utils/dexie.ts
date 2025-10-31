@@ -1,16 +1,16 @@
 import Dexie, { type EntityTable } from "dexie";
 
-interface ColumnWidths {
+interface IColumnWidths {
   id: number;
   width: string;
 }
 
-const db = new Dexie("ColumnWidthDatabase") as Dexie & {
-  columnWidths: EntityTable<ColumnWidths, "id">;
+const dex = new Dexie("ColumnWidthDatabase") as Dexie & {
+  column_widths: EntityTable<IColumnWidths, "id">;
 };
-db.version(1).stores({
+dex.version(1).stores({
   friends: "++id, width",
 });
 
-export type { ColumnWidths };
-export { db };
+export type { IColumnWidths as ColumnWidths };
+export { dex };

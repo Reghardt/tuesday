@@ -1,41 +1,43 @@
-import axios from "axios";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Component() {
-  const [fileList, setFileList] = useState<FileList | null>(null);
+  const resizer = useRef<HTMLDivElement>(null);
+  const sideBar = useRef<HTMLDivElement>(null);
 
-  async function postData() {
-    await axios.postForm(
-      "http://localhost:5173/api/upload",
-      {
-        testField: "hello",
-        files: Array.from(fileList ?? []),
-      },
-      {
-        onUploadProgress: (progress) => {
-          console.log(progress.total);
-        },
-      }
-    );
-  }
+  useEffect(() => {
+    resizer.current?.addEventListener("mousedown", (e) => {
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+
+      const handleMouseMove = (e: MouseEvent) => {
+        sideBar.current!.style.width = `${e.clientX}px`;
+      };
+
+      const handleMouseUp = (e: MouseEvent) => {
+        document.body.style.cursor = "default";
+        document.body.style.userSelect = "";
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+
+      document.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+    });
+  }, []);
 
   return (
-    <div>
-      <div>Test</div>
-      <div className="flex flex-col gap-2">
-        <input
-          multiple
-          type="file"
-          onChange={(e) => setFileList(e.target.files)}
-        ></input>
-        <button
-          onClick={() => {
-            postData();
-          }}
-        >
-          Press
-        </button>
+    <div className="flex">
+      <div
+        ref={sideBar}
+        className="bg-neutral-400 w-40 min-w-10 max-w-60 relative"
+      >
+        Content
+        <div
+          ref={resizer}
+          className=" absolute top-0 right-0 w-1 cursor-col-resize bg-gray-300 h-full"
+        ></div>
       </div>
+      <div>Hello2</div>
     </div>
   );
 }
